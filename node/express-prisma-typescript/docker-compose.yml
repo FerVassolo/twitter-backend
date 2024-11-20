@@ -21,6 +21,7 @@ services:
       context: .
       dockerfile: Dockerfile
       target: dev
+    platform: linux/amd64 # this is needed for my M1 Mac
     container_name: server
     restart: always
     tty: true

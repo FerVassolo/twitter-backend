@@ -1,5 +1,5 @@
-# Install dependencies
-FROM node:18-alpine AS deps
+# Install dependencies, added the platform tag so it can run on my M1 mac
+FROM --platform=linux/amd64 node:18-alpine AS deps
 
 WORKDIR /app
 
