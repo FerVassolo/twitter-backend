@@ -18,6 +18,12 @@ export class UserServiceImpl implements UserService {
     return await this.repository.getRecommendedUsersPaginated(options)
   }
 
+  async changeVisibility(userId: string, value: boolean): Promise<string> {
+    await this.repository.changeVisibility(userId, value);
+    return 'Visibility is now ' + value;
+  }
+
+
   async deleteUser (userId: any): Promise<void> {
     await this.repository.delete(userId)
   }

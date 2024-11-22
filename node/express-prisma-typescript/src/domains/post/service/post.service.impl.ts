@@ -14,26 +14,32 @@ export class PostServiceImpl implements PostService {
   }
 
   async deletePost (userId: string, postId: string): Promise<void> {
-    const post = await this.repository.getById(postId)
+    const post = await this.repository.getById(userId, postId)
     if (!post) throw new NotFoundException('post')
     if (post.authorId !== userId) throw new ForbiddenException()
     await this.repository.delete(postId)
   }
 
   async getPost (userId: string, postId: string): Promise<PostDTO> {
-    // TODO: validate that the author has public profile or the user follows the author
-    const post = await this.repository.getById(postId)
+    const post = await this.repository.getById(userId, postId)
+    const postExists = await this.repository.postExistsById(userId, postId)
+
+    // I'm throwing a 404 error because it is what was asked, but I'd rather return a 403 error
+    if(postExists && !post) throw new NotFoundException("post. It may be that the author is private and you don't follow them")
     if (!post) throw new NotFoundException('post')
+
     return post
   }
 
   async getLatestPosts (userId: string, options: CursorPagination): Promise<PostDTO[]> {
-    // TODO: filter post search to return posts from authors that the user follows
-    return await this.repository.getAllByDatePaginated(options)
+    return await this.repository.getAllByDatePaginated(userId, options)
   }
 
   async getPostsByAuthor (userId: any, authorId: string): Promise<PostDTO[]> {
-    // TODO: throw exception when the author has a private profile and the user doesn't follow them
-    return await this.repository.getByAuthorId(authorId)
+    const posts = await this.repository.getByAuthorId(userId, authorId)
+
+    if(!posts) throw new NotFoundException("posts. It may be that the user is private or that it doesn't exist")
+
+    return posts;
   }
 }

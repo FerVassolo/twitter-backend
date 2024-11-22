@@ -58,4 +58,15 @@ export class UserRepositoryImpl implements UserRepository {
     })
     return user ? new ExtendedUserDTO(user) : null
   }
+
+  async changeVisibility(userId: string, value: boolean): Promise<void> {
+    await this.db.user.update({
+      where: {
+        id: userId
+      },
+      data: {
+        isPublic: value
+      }
+    })
+  }
 }

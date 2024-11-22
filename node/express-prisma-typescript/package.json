@@ -26,7 +26,8 @@
     "jsonwebtoken": "^9.0.0",
     "method-override": "^3.0.0",
     "morgan": "^1.10.0",
-    "signale": "^1.4.0"
+    "signale": "^1.4.0",
+    "swagger-ui": "^5.18.2"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",

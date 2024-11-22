@@ -8,4 +8,5 @@ export interface UserRepository {
   getRecommendedUsersPaginated: (options: OffsetPagination) => Promise<UserDTO[]>
   getById: (userId: string) => Promise<UserDTO | null>
   getByEmailOrUsername: (email?: string, username?: string) => Promise<ExtendedUserDTO | null>
+  changeVisibility: (userId: string, value: boolean) => Promise<void>
 }

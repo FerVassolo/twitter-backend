@@ -38,6 +38,25 @@ userRouter.get('/:userId', async (req: Request, res: Response) => {
   return res.status(HttpStatus.OK).json(user)
 })
 
+userRouter.get('/visibility', async (req: Request, res: Response) => {
+  //TODO
+})
+
+userRouter.post('/make-public/:boolean', async (req: Request, res: Response) => {
+  const { userId } = res.locals.context;
+  const { boolean } = req.params;
+  const isPublic = boolean === 'true';
+
+  if(boolean !== 'true' && boolean !== 'false') {
+    return res.status(HttpStatus.BAD_REQUEST).json({ error: 'Invalid param value, they should be "true" or "false"' });
+  }
+
+  const response = await service.changeVisibility(userId, isPublic);
+  return res.status(HttpStatus.OK).json({ message: response });
+
+});
+
+
 userRouter.delete('/', async (req: Request, res: Response) => {
   const { userId } = res.locals.context
 
