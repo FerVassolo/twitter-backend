@@ -5,6 +5,18 @@ import 'express-async-errors'
 
 export const healthRouter = Router()
 
+/**
+ * @swagger
+ * /api/health:
+ *   get:
+ *     summary: Checks the health status of the API.
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: API is healthy and operational.
+ *       500:
+ *         description: API is non-operational.
+ */
 healthRouter.get('/', (req: Request, res: Response) => {
   return res.status(HttpStatus.OK).send()
 })

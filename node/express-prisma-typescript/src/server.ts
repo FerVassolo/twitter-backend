@@ -6,6 +6,8 @@ import cors from 'cors'
 import { Constants, NodeEnv, Logger } from '@utils'
 import { router } from '@router'
 import { ErrorHandling } from '@utils/errors'
+import swaggerUi from 'swagger-ui-express'
+import swaggerSpec from './swagger'
 
 const app = express()
 
@@ -18,6 +20,9 @@ if (Constants.NODE_ENV === NodeEnv.DEV) {
 app.use(express.json()) // Parses application/json payloads request bodies
 app.use(express.urlencoded({ extended: false })) // Parse application/x-www-form-urlencoded request bodies
 app.use(cookieParser()) // Parse cookies
+
+// Swagger
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
 // Set up CORS
 app.use(

@@ -30,8 +30,9 @@ model User {
   deletedAt DateTime? // Optional value
 
   posts     Post[]
-  follows   Follow[] @relation(name: "follows")
-  followers Follow[] @relation(name: "followers")
+  follows   Follow[]   @relation(name: "follows")
+  followers Follow[]   @relation(name: "followers")
+  Reaction  Reaction[]
 }
 
 model Follow {
@@ -59,5 +60,33 @@ model Post {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime? // Optional value
 
+  respondsToId String? @db.Uuid // Optional foreign key
+  respondsTo   Post?   @relation("PostRespondsTo", fields: [respondsToId], references: [id]) // Self-relation
+  responses    Post[]  @relation("PostRespondsTo") // Inverse relation for responses
+
   author User @relation(fields: [authorId], references: [id], onDelete: Cascade) // One to many
+}
+
+model Reaction {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+
+  reactionerId String       @db.Uuid
+  postId       String       @db.Uuid
+  type         ReactionType
+
+  createdAt DateTime @default(now())
+
+  // If the user is deleted, their relations should be deleted as well
+  reactioner User @relation(fields: [reactionerId], references: [id], onDelete: Cascade) // One to many
+
+  // TODO: no sé pq no me anda. Pero si el post se borra, se borran todas las reacciones.
+  // post       Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  // Shouldn't be able to react to the same post twice
+  @@unique([reactionerId, postId, type])
+}
+
+enum ReactionType {
+  LIKE
+  RETWEET
 }

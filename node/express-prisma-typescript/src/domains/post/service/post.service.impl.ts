@@ -22,7 +22,7 @@ export class PostServiceImpl implements PostService {
 
   async getPost (userId: string, postId: string): Promise<PostDTO> {
     const post = await this.repository.getById(userId, postId)
-    const postExists = await this.repository.postExistsById(userId, postId)
+    const postExists = await this.repository.postExistsById(postId)
 
     // I'm throwing a 404 error because it is what was asked, but I'd rather return a 403 error
     if(postExists && !post) throw new NotFoundException("post. It may be that the author is private and you don't follow them")
@@ -38,8 +38,26 @@ export class PostServiceImpl implements PostService {
   async getPostsByAuthor (userId: any, authorId: string): Promise<PostDTO[]> {
     const posts = await this.repository.getByAuthorId(userId, authorId)
 
-    if(!posts) throw new NotFoundException("posts. It may be that the user is private or that it doesn't exist")
+    if(!posts) throw new NotFoundException("posts. It may be that the user is private or that it doesn't exist.")
 
     return posts;
+  }
+
+  async createComment (userId: string, postId: string, data: CreatePostInputDTO): Promise<PostDTO> {
+    try{
+      await validate(data)
+      return await this.repository.createComment(userId, postId, data)
+    }
+    catch(e) {
+      throw e
+    }
+  }
+
+  async getLatestComments (userId: string, postId: string, options: CursorPagination): Promise<PostDTO[]> {
+    return await this.repository.getAllCommentsByDatePaginated(userId, postId, options)
+  }
+
+  getCommentsByAuthor(userId: any, authorId: string): Promise<PostDTO[]> {
+    throw new Error('Method not implemented.');
   }
 }

@@ -4,7 +4,6 @@ import { CursorPagination } from '@types'
 
 import { PostRepository } from '.'
 import { CreatePostInputDTO, PostDTO } from '../dto'
-import { UserDTO } from '@domains/user/dto';
 
 export class PostRepositoryImpl implements PostRepository {
   constructor (private readonly db: PrismaClient) {}
@@ -13,6 +12,26 @@ export class PostRepositoryImpl implements PostRepository {
     const post = await this.db.post.create({
       data: {
         authorId: userId,
+        ...data
+      }
+    })
+    return new PostDTO(post)
+  }
+
+  async createComment (userId: string, postId: string, data: CreatePostInputDTO): Promise<PostDTO> {
+    const author = await this.getPostAuthor(postId);
+    if (author == undefined) {
+      throw new Error("You can't comment on this post. It may be that the author doesn't exist.")
+    }
+    else if (!await this.isFollowed(userId, author) && !await this.authorIsPublic(author)) {
+      throw new Error("You can't comment on this post. " +
+        "It may be that the author is private and you don't follow them")
+    }
+
+    const post = await this.db.post.create({
+      data: {
+        authorId: userId,
+        respondsToId: postId,
         ...data
       }
     })
@@ -40,6 +59,36 @@ export class PostRepositoryImpl implements PostRepository {
     return posts.map(post => new PostDTO(post))
   }
 
+  async getAllCommentsByDatePaginated (userId: string, postId: string, options: CursorPagination): Promise<PostDTO[]> {
+    const followingUserIds = await this.getFollowingUsers(userId);
+    followingUserIds.push(userId); // You should be able to see your own posts
+    const filter = this.buildPostFilter(followingUserIds, postId);  // You cannot see comments from private accounts
+
+    console.log("userId: ", userId);
+    console.log("postId: ", postId);
+    // print all following users
+    console.log("followingUserIds: ", followingUserIds);
+
+    const comments = await this.db.post.findMany({
+      where: {
+        ...filter,
+        respondsToId: postId
+      },
+      cursor: options.after ? { id: options.after } : (options.before) ? { id: options.before } : undefined,
+      skip: options.after ?? options.before ? 1 : undefined,
+      take: options.limit ? (options.before ? -options.limit : options.limit) : undefined,
+      orderBy: [
+        {
+          createdAt: 'desc'
+        },
+        {
+          id: 'asc'
+        }
+      ]
+    })
+    return comments.map(comment => new PostDTO(comment))
+  }
+
   async delete (postId: string): Promise<void> {
     await this.db.post.delete({
       where: {
@@ -51,12 +100,14 @@ export class PostRepositoryImpl implements PostRepository {
   async getById(userId: string, postId: string): Promise<PostDTO | null> {
     const followingUserIds = await this.getFollowingUsers(userId);
     followingUserIds.push(userId); // You should be able to see your own posts
-
     const filter = {
-      AND: [
-        this.buildPostFilter(followingUserIds),
-        { id: postId }
-      ]
+      AND: {
+        OR: [
+          this.buildPostFilter(followingUserIds),
+          this.buildPostFilter(followingUserIds, postId),
+        ],
+        id: postId
+      }
     };
 
     const post = await this.db.post.findFirst({
@@ -65,9 +116,7 @@ export class PostRepositoryImpl implements PostRepository {
     return post ? new PostDTO(post) : null;
   }
 
-  async postExistsById(userId: string, postId: string): Promise<boolean> {
-    const followingUserIds = await this.getFollowingUsers(userId);
-    followingUserIds.push(userId); // You should be able to see your own posts
+  async postExistsById(postId: string): Promise<boolean> {
 
     const post = await this.db.post.findUnique({
       where: {
@@ -77,22 +126,21 @@ export class PostRepositoryImpl implements PostRepository {
     return (post != null)
   }
 
-  async getByAuthorId (userId: string, authorId: string): Promise<PostDTO[] | null> {
-    if(!await this.isFollowed(userId, authorId)) {
-        return null
+
+  async getByAuthorId(userId: string, authorId: string): Promise<PostDTO[]> {
+    if(!await this.canViewPosts(userId, authorId)) {
+      throw new Error("You can't see this user's posts. It may be that the user is private or that it doesn't exist.")
     }
 
-    if(!await this.userExists(authorId)) return null;
-
     const posts = await this.db.post.findMany({
-      where: {
-        authorId
-      }
-    })
-    return posts.map(post => new PostDTO(post))
+      where: { authorId },
+    });
+
+    return posts.map(post => new PostDTO(post));
   }
 
-  private async isFollowed (userId:string, authorId: string): Promise<boolean> {
+
+  async isFollowed (userId:string, authorId: string): Promise<boolean> {
     if(userId === authorId) return true;
 
     const follow = await this.db.follow.findFirst({
@@ -123,18 +171,54 @@ export class PostRepositoryImpl implements PostRepository {
       }
     });
 
-    // Extract the `followedId`s as a list of strings
     return followedIds.map(follow => follow.followedId);
   }
 
-  private buildPostFilter(followingUserIds: string[]): object {
+  private buildPostFilter(followingUserIds: string[], retrieveComments: string | null = null): object {
     return {
-      OR: [
-        { authorId: { in: followingUserIds } },
-        { author: { isPublic: true } },
-      ],
+      AND: {
+        OR: [
+          { authorId: { in: followingUserIds } },
+          { author: { isPublic: true } },
+        ],
+        respondsTo: retrieveComments ? { id: retrieveComments } : null
+      }
     };
   }
 
+  private async getPostAuthor(postId: string): Promise<string | undefined> {
+    const post = await this.db.post.findUnique({
+      where: {
+        id: postId
+      },
+      select: {
+        authorId: true
+      }
+    });
+    return post?.authorId;
+  }
+
+  private async authorIsPublic(authorId: string): Promise<boolean> {
+    const author = await this.db.user.findUnique({
+      where: {
+        id: authorId
+      },
+      select: {
+        isPublic: true
+      }
+    });
+    return author?.isPublic ?? false;
+  }
+
+  public async canViewPosts(userId: string, authorId: string): Promise<boolean> {
+    const user = await this.db.user.findUnique({
+      where: { id: authorId },
+      select: {
+        isPublic: true,
+        followers: { where: { followerId: userId }, select: { id: true } },
+      },
+    });
+    return !!user && (user.isPublic || user.followers.length > 0);
+  }
 
 }
