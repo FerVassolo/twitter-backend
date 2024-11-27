@@ -60,6 +60,8 @@ model Post {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime? // Optional value
 
+  status PostStatus @default(PENDING)
+
   respondsToId String? @db.Uuid // Optional foreign key
   respondsTo   Post?   @relation("PostRespondsTo", fields: [respondsToId], references: [id]) // Self-relation
   responses    Post[]  @relation("PostRespondsTo") // Inverse relation for responses
@@ -89,4 +91,9 @@ model Reaction {
 enum ReactionType {
   LIKE
   RETWEET
+}
+
+enum PostStatus {
+  PENDING
+  APPROVED
 }

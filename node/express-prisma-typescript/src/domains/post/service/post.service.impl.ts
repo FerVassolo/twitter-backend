@@ -1,16 +1,24 @@
-import { CreatePostInputDTO, PostDTO } from '../dto'
+import {CreatePostInputDTO, PendingPostDTO, PostDTO} from '../dto'
 import { PostRepository } from '../repository'
 import { PostService } from '.'
 import { validate } from 'class-validator'
 import { ForbiddenException, NotFoundException } from '@utils'
 import { CursorPagination } from '@types'
+import {PostStatus} from "@prisma/client";
 
 export class PostServiceImpl implements PostService {
   constructor (private readonly repository: PostRepository) {}
 
-  async createPost (userId: string, data: CreatePostInputDTO): Promise<PostDTO> {
+  async createPost (userId: string, data: CreatePostInputDTO): Promise<PostDTO | PendingPostDTO> {
     await validate(data)
     return await this.repository.create(userId, data)
+  }
+
+  async finalizePost (userId: string, postId: string): Promise<PostDTO> {
+    const post = await this.repository.getCommentOrPostById(userId, postId, PostStatus.PENDING)
+    if (!post) throw new NotFoundException('post')
+    if (post.authorId !== userId) throw new ForbiddenException()
+    return await this.repository.finalize(postId)
   }
 
   async deletePost (userId: string, postId: string): Promise<void> {
@@ -43,7 +51,7 @@ export class PostServiceImpl implements PostService {
     return posts;
   }
 
-  async createComment (userId: string, postId: string, data: CreatePostInputDTO): Promise<PostDTO> {
+  async createComment (userId: string, postId: string, data: CreatePostInputDTO): Promise<PostDTO | PendingPostDTO>  {
     try{
       await validate(data)
       return await this.repository.createComment(userId, postId, data)

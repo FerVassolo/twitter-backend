@@ -15,7 +15,7 @@ export class ReactionRepositoryImpl implements ReactionRepository {
 
   async createReaction(input: CreateReactionInputDTO): Promise<string> {
     const { userId, postId, reactionType } = input
-    const authorId = await this.getAuthorId(postId);
+    const authorId = await this.postRepository.getPostAuthor(postId);
     if(!authorId) {
       throw new Error('Post not found')
     }
@@ -88,15 +88,6 @@ export class ReactionRepositoryImpl implements ReactionRepository {
       }
     })
     return !!follow;
-  }
-
-  private async getAuthorId(postId: string): Promise<string | undefined> {
-    const author = await this.db.post.findUnique({
-      where: { id: postId },
-      select: { authorId: true },
-    });
-
-    return author?.authorId
   }
 
   private async accountIsPrivate(userId: string): Promise<boolean> {

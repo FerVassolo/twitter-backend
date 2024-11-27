@@ -171,6 +171,15 @@ postRouter.post('/', BodyValidation(CreatePostInputDTO), async (req: Request, re
   return res.status(HttpStatus.CREATED).json(post)
 })
 
+postRouter.post('/finalize/:postId', async (req: Request, res: Response) => {
+  const { userId } = res.locals.context
+  const { postId } = req.params
+
+  const post = await service.finalizePost(userId, postId)
+
+  return res.status(HttpStatus.CREATED).json(post)
+})
+
 /**
  * @swagger
  * /api/post/{postId}:
@@ -226,6 +235,14 @@ postRouter.get('/comments/:postId', async (req: Request, res: Response) => {
   return res.status(HttpStatus.OK).json(comments)
 })
 
+postRouter.post('/comment/finalize/:postId', async (req: Request, res: Response) => {
+  const { userId } = res.locals.context
+  const { postId } = req.params
+
+  const post = await service.finalizePost(userId, postId)
+
+  return res.status(HttpStatus.CREATED).json(post)
+})
 
 postRouter.get('/comments/user/:user_id', async (req: Request, res: Response) => {
   const { userId } = res.locals.context

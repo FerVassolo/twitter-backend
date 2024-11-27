@@ -28,6 +28,13 @@
       {
         "allowStaticOnly": true
       }
+    ],
+    "@typescript-eslint/indent": [
+        "error",
+        2,
+        {
+            "SwitchCase": 1
+        }
     ]
   }
 

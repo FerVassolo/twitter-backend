@@ -144,11 +144,19 @@ Fork this repository and complete the tasks. Then create a PR and start with you
   - [x] Retweets
   - [x] Comments
 - [ ] Users do not currently have a profile picture. Integrate with AWS S3 to store user profile pictures and post pictures. Careful! Do not receive images in your endpoints. Make use of S3 Pre-signed URLs. Update the UserDTO to include the profile image. You can use a public S3 bucket as it doesn't contain private data.
-  - [ ] Que tome solo svg, png, jpg, jpeg
-  - [ ] Cada usuario tiene una carpeta, allí dentro tendrá dos carpetas más, una para los posts y otra para el perfil
-    - [ ] Incluso si tu cuenta es privada yo debería poder ver tu cuenta de perfil y todos los elementos de tu carpeta public.
-  - [ ] Límite de 5MB por imagen
-  - [ ] Las post pictures sí son privadas.
+  - [x] Implementar las 4 funciones del repo de storage
+  - Que tome solo svg, png, jpg, jpeg 
+    - As far as I'm concerned, that is not possible. The front-end should be responsible of that validation. Dejar este problema para ver si lo podés solucionar después.
+  - [x] Cada usuario tiene una carpeta, allí dentro tendrá dos carpetas más, una para los posts y otra para el perfil
+  - Límite de 5MB por imagen. No sé cómo hacerlo.
+  - [x] Las post pictures sí pueden ser privadas. Actualizá el get para tener las url de las imagenes.
+    - [x] Al hacer get posts que busque de aws los pre signed urls.
+  - La imagen del Perfil no se guarda en la db
+  - [x] En la db de post guardo como se llaman las imagenes que subió el usuario para después hacer `GET userId/post/PostId/imageName`
+    - Guardarlas como `image1` en la db
+  - [x] Actualizá las reactions para que solo sean válidas a posts en pending.
+    - [x] En realidad ya está hecho. Porque las reactions para acceder a post le piden al PostRepository, y este ya es está ocupando de que no pueda acceder.
+  - [x] Eliminar el Storage controller al terminar.
 - [ ] Update  `GET api/user/me` and `GET api/user`  to return `UserViewDTO`.
 - [ ] Create endpoint `GET api/comment/:post_id` to get comments by post. Add Cursor Based Pagination (You can see how it works [here](./src/types/index.ts)). It should return `ExtendedPostDTO` and sorted by reactions.
 - [ ] Create endpoint `GET api/user/by_username/:username` to return a list of `UserViewDTO`  of those users whose usernames are included in `:username`. Add pagination.
@@ -161,3 +169,5 @@ Fork this repository and complete the tasks. Then create a PR and start with you
     - [Fl/](https://docs.fl0.com/)
     - [Back4app](https://www.back4app.com/)
     - [AWS](https://aws.amazon.com/)(You need previous AWS knowledge)
+- [ ] MODULARIZÁ
+- [ ] Ver todos que hayan quedado despedregados por el proyecto.
