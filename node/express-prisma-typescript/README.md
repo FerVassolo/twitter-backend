@@ -143,7 +143,7 @@ Fork this repository and complete the tasks. Then create a PR and start with you
   - [x] Likes
   - [x] Retweets
   - [x] Comments
-- [ ] Users do not currently have a profile picture. Integrate with AWS S3 to store user profile pictures and post pictures. Careful! Do not receive images in your endpoints. Make use of S3 Pre-signed URLs. Update the UserDTO to include the profile image. You can use a public S3 bucket as it doesn't contain private data.
+- [x] Users do not currently have a profile picture. Integrate with AWS S3 to store user profile pictures and post pictures. Careful! Do not receive images in your endpoints. Make use of S3 Pre-signed URLs. Update the UserDTO to include the profile image. You can use a public S3 bucket as it doesn't contain private data.
   - [x] Implementar las 4 funciones del repo de storage
   - Que tome solo svg, png, jpg, jpeg 
     - As far as I'm concerned, that is not possible. The front-end should be responsible of that validation. Dejar este problema para ver si lo podés solucionar después.
@@ -153,12 +153,12 @@ Fork this repository and complete the tasks. Then create a PR and start with you
     - [x] Al hacer get posts que busque de aws los pre signed urls.
   - La imagen del Perfil no se guarda en la db
   - [x] En la db de post guardo como se llaman las imagenes que subió el usuario para después hacer `GET userId/post/PostId/imageName`
-    - Guardarlas como `image1` en la db
+    - Guardarlas como `imageName` en la db
   - [x] Actualizá las reactions para que solo sean válidas a posts en pending.
     - [x] En realidad ya está hecho. Porque las reactions para acceder a post le piden al PostRepository, y este ya es está ocupando de que no pueda acceder.
   - [x] Eliminar el Storage controller al terminar.
-- [ ] Update  `GET api/user/me` and `GET api/user`  to return `UserViewDTO`.
-- [ ] Create endpoint `GET api/comment/:post_id` to get comments by post. Add Cursor Based Pagination (You can see how it works [here](./src/types/index.ts)). It should return `ExtendedPostDTO` and sorted by reactions.
+- [x] Update  `GET api/user/me` and `GET api/user`  to return `UserViewDTO`.
+- [ ] Create endpoint `GET api/comment/:post_id` to get comments by post. Add Cursor Based Pagination (You can see how it works [here](./src/types/index.ts)). It should return `ExtendedPostDTO` and **sorted by reactions**.
 - [ ] Create endpoint `GET api/user/by_username/:username` to return a list of `UserViewDTO`  of those users whose usernames are included in `:username`. Add pagination.
 - [ ] Update `GET api/post` and `GET api/post/by_user/:user_id` to return a list of `ExtendedPostDTO`.
 - [ ] Update `GET api/user/:user_id` to return `UserViewDTO`. Also return if the user follows the one making the request.

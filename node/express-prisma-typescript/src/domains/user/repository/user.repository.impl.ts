@@ -1,11 +1,15 @@
-import { SignupInputDTO } from '@domains/auth/dto'
-import { PrismaClient } from '@prisma/client'
-import { OffsetPagination } from '@types'
-import { ExtendedUserDTO, UserDTO } from '../dto'
-import { UserRepository } from './user.repository'
+import {SignupInputDTO} from '@domains/auth/dto'
+import {PrismaClient, User} from '@prisma/client'
+import {OffsetPagination} from '@types'
+import {ExtendedUserDTO, UserDTO, UserViewDTO} from '../dto'
+import {UserRepository} from './user.repository'
+import {StorageRepository, StorageRepositoryImpl} from "@domains/storage";
 
 export class UserRepositoryImpl implements UserRepository {
-  constructor (private readonly db: PrismaClient) {}
+  private readonly storageRepository: StorageRepository;
+  constructor (private readonly db: PrismaClient) {
+    this.storageRepository = new StorageRepositoryImpl();
+  }
 
   async create (data: SignupInputDTO): Promise<UserDTO> {
     return await this.db.user.create({
@@ -13,14 +17,26 @@ export class UserRepositoryImpl implements UserRepository {
     }).then(user => new UserDTO(user))
   }
 
-  async getById (userId: any): Promise<UserDTO | null> {
+  async getById(userId: any): Promise<UserViewDTO | null> {
     const user = await this.db.user.findUnique({
       where: {
-        id: userId
-      }
-    })
-    return user ? new UserDTO(user) : null
+        id: userId,
+      },
+    });
+
+    if (!user) return null;
+
+    const profilePicture = await this.storageRepository.getProfilePreSignedUrl(userId);
+
+    return new UserViewDTO({
+      id: user.id,
+      name: user.name || '',
+      username: user.username,
+      profilePicture: profilePicture,
+    });
   }
+
+
 
   async delete (userId: any): Promise<void> {
     await this.db.user.delete({
@@ -30,7 +46,7 @@ export class UserRepositoryImpl implements UserRepository {
     })
   }
 
-  async getRecommendedUsersPaginated (options: OffsetPagination): Promise<UserDTO[]> {
+  async getRecommendedUsersPaginated (options: OffsetPagination): Promise<UserViewDTO[]> {
     const users = await this.db.user.findMany({
       take: options.limit ? options.limit : undefined,
       skip: options.skip ? options.skip : undefined,
@@ -40,7 +56,8 @@ export class UserRepositoryImpl implements UserRepository {
         }
       ]
     })
-    return users.map(user => new UserDTO(user))
+
+    return await this.usersWithProfileImage(users);
   }
 
   async getByEmailOrUsername (email?: string, username?: string): Promise<ExtendedUserDTO | null> {
@@ -68,5 +85,19 @@ export class UserRepositoryImpl implements UserRepository {
         isPublic: value
       }
     })
+  }
+
+  async usersWithProfileImage(users: User[]): Promise<UserViewDTO[]>{
+    return await Promise.all(
+      users.map(async (user) => {
+        const profilePicture = await this.storageRepository.getProfilePreSignedUrl(user.id);
+        return new UserViewDTO({
+          id: user.id,
+          name: user.name || '',
+          username: user.username,
+          profilePicture: profilePicture,
+        });
+      })
+    );
   }
 }

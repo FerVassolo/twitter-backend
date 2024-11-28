@@ -6,7 +6,7 @@ export interface StorageRepository{
   // each post has a folder, /post/postId/image.png, /post/postId/image2.png, etc.
 
   createProfilePreSignedUrl: (userId: string) => Promise<string>
-  getProfilePreSignedUrl: (userId: string) => Promise<string>
+  getProfilePreSignedUrl: (userId: string) =>  Promise<string | null>
   createPostPreSignedUrls: (userId: string, postId: string, images: string[]) => Promise<string[]>
   getPostPreSignedUrls: (userId: string, postId: string) => Promise<string[]>
 }

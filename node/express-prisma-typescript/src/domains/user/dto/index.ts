@@ -31,7 +31,7 @@ export class UserViewDTO {
   }
 
   id: string
-  name: string
+  name: string  // TODO: propose change so this accepts also null values
   username: string
   profilePicture: string | null
 }

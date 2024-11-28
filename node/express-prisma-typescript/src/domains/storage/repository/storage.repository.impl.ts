@@ -37,16 +37,13 @@ export class StorageRepositoryImpl implements StorageRepository {
 
     if (existingFile) {
       console.log(`File already exists: ${existingFile}`);
-      // Return a pre-signed URL for the existing file
       return this.getFileInFolder(existingFile);
     }
-
     console.log(`File does not exist: ${filename}`);
-    // If no existing file, create a new pre-signed URL
     return this.createFileInFolder(profileImageFolderKey, filename);
   }
 
-  async getProfilePreSignedUrl(userId: string): Promise<string> {
+  async getProfilePreSignedUrl(userId: string): Promise<string | null> {
     const profileImageFolderKey = `${userId}/public/profile-image/`;
 
     const existingFile = await this.getExistingFileInFolder(profileImageFolderKey);
@@ -55,7 +52,7 @@ export class StorageRepositoryImpl implements StorageRepository {
       return this.getFileInFolder(existingFile);
     } else {
       console.log(`No profile image found for user ${userId}`);
-      throw new Error(`No profile image found for user ${userId}`);
+      return null
     }
   }
 
@@ -77,7 +74,6 @@ export class StorageRepositoryImpl implements StorageRepository {
   async getPostPreSignedUrls(userId: string, postId: string): Promise<string[]> {
     const postFolderKey = `${userId}/post/${postId}/`;
 
-    // Get all files in the folder
     const command = new ListObjectsV2Command({
       Bucket: this.bucketName,
       Prefix: postFolderKey,
@@ -94,7 +90,6 @@ export class StorageRepositoryImpl implements StorageRepository {
       const fileKeys = response.Contents.filter((item) => item.Key !== `${postFolderKey}`)
         .map((item) => item.Key!);
 
-      // Generate pre-signed URLs for each file
       const preSignedUrls = await Promise.all(
         fileKeys.map(async (fileKey) => {
           return this.getFileInFolder(fileKey);
