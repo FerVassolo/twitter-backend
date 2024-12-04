@@ -29,10 +29,12 @@ model User {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime? // Optional value
 
-  posts     Post[]
-  follows   Follow[]   @relation(name: "follows")
-  followers Follow[]   @relation(name: "followers")
-  Reaction  Reaction[]
+  posts            Post[]
+  follows          Follow[]   @relation(name: "follows")
+  followers        Follow[]   @relation(name: "followers")
+  Reaction         Reaction[]
+  sentMessages     Message[]  @relation("SentMessages") // Mensajes enviados
+  receivedMessages Message[]  @relation("ReceivedMessages") // Mensajes recibidos
 }
 
 model Follow {
@@ -86,6 +88,25 @@ model Reaction {
 
   // Shouldn't be able to react to the same post twice
   @@unique([reactionerId, postId, type])
+}
+
+model Message {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
+
+  senderId   String @db.Uuid
+  receiverId String @db.Uuid
+  content    String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // Optional value
+
+  // Eventual upgrades
+  // respondsTo String? @db.Uuid // Optional foreign key
+  // image     String
+  // audio     String? // We save the audio name, then we store the audio in an external storage.
+  sender   User @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
 }
 
 enum ReactionType {

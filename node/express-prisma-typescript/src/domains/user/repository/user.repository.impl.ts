@@ -1,14 +1,17 @@
 import {SignupInputDTO} from '@domains/auth/dto'
 import {PrismaClient, User} from '@prisma/client'
 import {OffsetPagination} from '@types'
-import {ExtendedUserDTO, UserDTO, UserViewDTO} from '../dto'
+import {ExtendedUserDTO, ExtendedUserViewDTO, UserDTO, UserViewDTO} from '../dto'
 import {UserRepository} from './user.repository'
 import {StorageRepository, StorageRepositoryImpl} from "@domains/storage";
+import {FollowerRepository, FollowerRepositoryImpl} from "@domains/follower/repository";
 
 export class UserRepositoryImpl implements UserRepository {
   private readonly storageRepository: StorageRepository;
+  private readonly followerRepository: FollowerRepository;
   constructor (private readonly db: PrismaClient) {
     this.storageRepository = new StorageRepositoryImpl();
+    this.followerRepository = new FollowerRepositoryImpl(db);
   }
 
   async create (data: SignupInputDTO): Promise<UserDTO> {
@@ -17,7 +20,20 @@ export class UserRepositoryImpl implements UserRepository {
     }).then(user => new UserDTO(user))
   }
 
-  async getById(userId: any): Promise<UserViewDTO | null> {
+  async getById(userId: string, self: string): Promise<UserViewDTO | null> {
+    const dto = await this.getUserViewDTOById(userId);
+    if(dto == null) return null
+
+    if (userId == self) {
+      return dto
+    }
+
+    // ask if userId is follower of self (or should it be the opposite? The README is very difficult to understand)
+    const followsYou = await this.followerRepository.isFollower(self, userId);
+    return new ExtendedUserViewDTO(dto, followsYou);
+  }
+
+  private async getUserViewDTOById(userId: any): Promise<UserViewDTO | null> {
     const user = await this.db.user.findUnique({
       where: {
         id: userId,
@@ -36,7 +52,20 @@ export class UserRepositoryImpl implements UserRepository {
     });
   }
 
+  async getByUsername(username: string, options: OffsetPagination): Promise<UserViewDTO[]> {
+    const users = await this.db.user.findMany({
+      take: options.limit ? options.limit : undefined,
+      skip: options.skip ? options.skip : undefined,
+      where: {
+        username: {
+          contains: username, // Checks that the username contains, at least, the search term
+          mode: 'insensitive' // Makes the search case insensitive. It doesn't differentiate between upper and lower cases
+        }
+      }
+    })
 
+    return await this.usersWithProfileImage(users);
+  }
 
   async delete (userId: any): Promise<void> {
     await this.db.user.delete({

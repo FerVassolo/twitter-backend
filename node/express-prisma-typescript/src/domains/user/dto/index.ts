@@ -35,3 +35,13 @@ export class UserViewDTO {
   username: string
   profilePicture: string | null
 }
+
+export class ExtendedUserViewDTO extends UserViewDTO {
+  constructor(user: UserViewDTO, followsYou: boolean) {
+    super(user);
+    this.followsYou = followsYou;
+  }
+
+  followsYou!: boolean;
+}
+

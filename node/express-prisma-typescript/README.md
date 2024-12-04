@@ -133,6 +133,8 @@ Fork this repository and complete the tasks. Then create a PR and start with you
 - [x] Update the `GET api/post/:post_id` and `GET api/post/by_user/:user_id` to throw a 404 error if the author has a private account and the user does not follow them.
 - [ ] The frontend team needs to integrate with the server, but they don't know what endpoints you have available or what they do. Document the API using [Swagger](https://blog.logrocket.com/documenting-express-js-api-swagger/)
   - [ ] Some remain, specially in the follower and auth domains.
+  - Se me ocurre meterle un openapi.json a cada uno de los controllers. Preguntar si me dejan. El tema de esto es q no correría en http://localhost:8080/api-docs/
+    - Si me apurás, me gusta como está ahora.
 - [x] Add the ability to react to a post (like and retweet) both should be stored in the same table and using the endpoints `POST api/reaction/:post_id` and `DELETE api/reaction/:post_id`.
   - Though it may need a better revision, I think it works fine
 - [x] Add the ability to comment in posts, a comment should be stored as a post, but still be able to query posts and comments separately.
@@ -146,10 +148,11 @@ Fork this repository and complete the tasks. Then create a PR and start with you
 - [x] Users do not currently have a profile picture. Integrate with AWS S3 to store user profile pictures and post pictures. Careful! Do not receive images in your endpoints. Make use of S3 Pre-signed URLs. Update the UserDTO to include the profile image. You can use a public S3 bucket as it doesn't contain private data.
   - [x] Implementar las 4 funciones del repo de storage
   - Que tome solo svg, png, jpg, jpeg 
-    - As far as I'm concerned, that is not possible. The front-end should be responsible of that validation. Dejar este problema para ver si lo podés solucionar después.
+    - As far as I'm concerned, that is not possible. The front-end should be responsible of that validation.
   - [x] Cada usuario tiene una carpeta, allí dentro tendrá dos carpetas más, una para los posts y otra para el perfil
   - Límite de 5MB por imagen. No sé cómo hacerlo.
-  - [x] Las post pictures sí pueden ser privadas. Actualizá el get para tener las url de las imagenes.
+    - Lo mismo que lo de los png. Se debería ocupar el front-end de esa verificación.
+  - [x] Las post pictures sí pueden ser privadas. Actualizá el get para tener las url de las imágenes.
     - [x] Al hacer get posts que busque de aws los pre signed urls.
   - La imagen del Perfil no se guarda en la db
   - [x] En la db de post guardo como se llaman las imagenes que subió el usuario para después hacer `GET userId/post/PostId/imageName`
@@ -158,16 +161,64 @@ Fork this repository and complete the tasks. Then create a PR and start with you
     - [x] En realidad ya está hecho. Porque las reactions para acceder a post le piden al PostRepository, y este ya es está ocupando de que no pueda acceder.
   - [x] Eliminar el Storage controller al terminar.
 - [x] Update  `GET api/user/me` and `GET api/user`  to return `UserViewDTO`.
-- [ ] Create endpoint `GET api/comment/:post_id` to get comments by post. Add Cursor Based Pagination (You can see how it works [here](./src/types/index.ts)). It should return `ExtendedPostDTO` and **sorted by reactions**.
-- [ ] Create endpoint `GET api/user/by_username/:username` to return a list of `UserViewDTO`  of those users whose usernames are included in `:username`. Add pagination.
-- [ ] Update `GET api/post` and `GET api/post/by_user/:user_id` to return a list of `ExtendedPostDTO`.
-- [ ] Update `GET api/user/:user_id` to return `UserViewDTO`. Also return if the user follows the one making the request.
+- [x] Create endpoint `GET api/comment/:post_id` to get comments by post. Add Cursor Based Pagination (You can see how it works [here](./src/types/index.ts)). It should return `ExtendedPostDTO` and **sorted by reactions**.
+- [x] Create endpoint `GET api/user/by_username/:username` to return a list of `UserViewDTO`  of those users whose usernames are included in `:username`. Add pagination.
+  - Lo que dice es que que busques los usuarios cuyo username contengan el string `:username`.
+    - Supongo q sirve para un buscador.
+    - Y la paginación es porque el buscador te tira, no sé, los primeros 5 ponele.
+- [x] Update `GET api/post` and `GET api/post/by_user/:user_id` to return a list of `ExtendedPostDTO`.
+- [x] Update `GET api/user/:user_id` to return `UserViewDTO`. Also return if the user follows the one making the request.
 - [ ] Using [SocketIO](https://socket.io/) create an authenticated websocket to create a real-time chat between users only if they follow eachother. Also messages should be stored in the database to keep the chat history.
+  - [x] Extraer el UserId del socket auth
+  - [x] Yo trato de mandar el msj, si el loco no está en el broadcast se manda el msj pero no se le envía a naides. De todos modos se guarda en la DB.
+  - [x] Endpoint para agarrar mensajes por paginación
+
+
+  - [x] Que solo se puedan enviar mensajes entre amigos. (llamar al método get friends en follower)
+    - [x] Un usuario podría enviarle mensaje a otro si no es amigo. En el socket tira una alerta. 
+      - [ ] QUIZÁ debería enviar un evento diciendole al sender "no se pudo enviar, no sigues a este usuario" o algo así.
+    - [x] Cuando me pida mandar un mensaje, ver si son amigos. CORTA.
+    - [x] Luego el front se ocupa de cargar lo q le pinte.
+  - [x] Guardar los mensajes en la db
+  - [x] Los últimos mensajes también mandalos por paginación cuando los cargas desde la db. 
+    - [x] Cuando el usuario scrollea para arriba para ver más que le pida al back de nuevo con una nueva paginación
+  - [x] Obviamente que si Fer está loggeado 20 veces que solo lo muestre una vez.
+    - [x] Quizá hacer que un mismo usuario tenga muchas sesiones, ergo, Map<SocketId[], UserId>
+  - [ ] Usar Redis para escalamiento horizontal. Por el momento guardo todo en la misma lista.
+  - [ ] Si tenés tiempo: 
+    - [ ] Que se puedan borrar mensajes
+    - [ ] Que se puedan editar mensajes
+    - [ ] Message status: SENT and SEEN. (received es bastante más complejo)
+      - [x] Cuando se manda un mensaje, el socket envía un evento diciendo q se guardó
+      - [ ] Cuando el usuario abre la ventana, se actualiza la DB marcando el mensaje como SEEN.
+        - [ ] Lo de la ventana no es problema nuestro, simplemente que el front mande un evento cuando el usuario abra el chat.
+        - [ ] Básicamente lo q tenés q hacer es un listener q cargue en la DB y un evento que avise al sender que su mensaje fue visto y al receiver uno diciendo que vio el mensaje.
+      - [ ] Todo mensaje guardado en la DB arranca marcado como SENT.
+  
 - [ ] Search for a testing framework and create some unit tests. Make a CI/CD pipeline using github actions to run those tests.
 - [ ] Deploy your backend and database to a service of your preference. Here are some recommended options:
     - [Railway](https://railway.app/)
     - [Fl/](https://docs.fl0.com/)
     - [Back4app](https://www.back4app.com/)
-    - [AWS](https://aws.amazon.com/)(You need previous AWS knowledge)
+    - [AWS](https://aws.amazon.com/) (you need previous AWS knowledge)
+  - SHOULD I INCLUDE THE DEPLOY IN THE CD/CI? Yes
+- [ ] Crear tabla PendingPosts
 - [ ] MODULARIZÁ
-- [ ] Ver todos que hayan quedado despedregados por el proyecto.
+- [ ] Ver los TODOs que hayan quedado despedregados por el proyecto.
+- [ ] Cada 1 hora, buscar todos los pending que se hayan creado hace más de 10 minutos y eliminarlos. Yo diría físicamente.
+- [ ] Probar crear un usuario meterle post, follows, mensajes... y que al borrar al usuario que todo eso se borre también.
+- [ ] Practicar presenta con pantalla dividida para poder leer notas y mostrar código a la vez.
+
+
+# Chichiardum leviousa
+- [ ] Que se puedan mandar imágenes por shat. Ahora, no sé si meterlo en S3, ¿cómo hace wpp web? ¿y twitter?
+  - Si fuera una app es re fácil pq guardás en local storage.
+    - Según entiendo, wpp web solo anda si tu cel está conectado, por lo tanto va al local storage de tu celu o algo así.
+      - Twitter desktop supongo que lo guarda en un bucket.
+  - Yo creo q puedo aprender algo acá.
+
+## Extra
+
+My IPv4 address is 192.168.64.22
+
+So the Swagger would be: http://192.168.64.22:8080/api-docs/ 

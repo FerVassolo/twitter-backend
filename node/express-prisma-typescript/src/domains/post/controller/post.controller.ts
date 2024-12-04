@@ -225,8 +225,7 @@ postRouter.post('/comment/:postId', async (req: Request, res: Response) => {
   return res.status(HttpStatus.CREATED).json(post)
 })
 
-// TODO: I think im being able to see comments of a post that I shouldn't be able to see
-postRouter.get('/comments/:postId', async (req: Request, res: Response) => {
+postRouter.get('/comment/:postId', async (req: Request, res: Response) => {
   const { userId } = res.locals.context
   const { limit, before, after } = req.query as Record<string, string>
   const { postId } = req.params

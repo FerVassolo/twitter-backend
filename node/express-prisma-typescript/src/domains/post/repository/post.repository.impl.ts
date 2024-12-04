@@ -1,10 +1,11 @@
-import {Post, PostStatus, PrismaClient} from '@prisma/client'
+import {Post, PostStatus, PrismaClient, ReactionType} from '@prisma/client'
 
 import {CursorPagination} from '@types'
 
 import {PostRepository} from '.'
-import {CreatePostInputDTO, PendingPostDTO, PostDTO} from '../dto'
+import {CreatePostInputDTO, ExtendedPostDTO, PendingPostDTO, PostDTO} from '../dto'
 import {StorageRepository, StorageRepositoryImpl} from "@domains/storage/repository";
+import {ExtendedUserDTO} from "@domains/user/dto";
 
 export class PostRepositoryImpl implements PostRepository {
   private readonly storageRepository: StorageRepository = new StorageRepositoryImpl();
@@ -24,15 +25,18 @@ export class PostRepositoryImpl implements PostRepository {
   }
 
 
-  async getAllByDatePaginated (userId: string, options: CursorPagination): Promise<PostDTO[]> {
+  // --- GET POST AND COMMENT BY DATE PAGINATED
+  async getAllByDatePaginated (userId: string, options: CursorPagination): Promise<ExtendedPostDTO[]> {
     const followingUserIds = await this.getFollowingUsers(userId);
     const filter = this.buildPostFilter(followingUserIds);
 
     const posts = await this.getPostByFilters(options, filter)
+
+    // They are not sorted. Wasn't asked. I think it is ok not to sort them.
     return this.getListOfDtoWithPreSignedUrls(userId, posts)
   }
 
-  async getAllCommentsByDatePaginated (userId: string, postId: string, options: CursorPagination): Promise<PostDTO[]> {
+  async getAllCommentsByDatePaginated (userId: string, postId: string, options: CursorPagination): Promise<ExtendedPostDTO[]> {
     const followingUserIds = await this.getFollowingUsers(userId);
 
     // You cannot see comments from private accounts
@@ -40,11 +44,39 @@ export class PostRepositoryImpl implements PostRepository {
       ...this.buildPostFilter(followingUserIds, postId),
       respondsToId: postId,
     };
-
-    const posts = await this.getPostByFilters(options, filter)
-    return this.getListOfDtoWithPreSignedUrls(userId, posts)
+    return await this.getSortedPostsByFilters(userId, options, filter);
   }
 
+  private async getSortedPostsByFilters(userId: string, options: CursorPagination, filter: Object): Promise<ExtendedPostDTO[]> {
+    const posts = await this.getPostByFilters(options, filter)
+    const extendedDTOs = await Promise.all(
+      posts.map((post) => this.getPostDTO(userId, post))
+    );
+
+    // Sort comments by reactions before returning
+    return this.sortByReactions(extendedDTOs);
+  }
+
+  private async getPostByFilters(options: CursorPagination, filter: Object): Promise<Post[]> {
+    const posts = await this.db.post.findMany({
+      where: filter,
+      cursor: options.after ? { id: options.after } : (options.before) ? { id: options.before } : undefined,
+      skip: options.after ?? options.before ? 1 : undefined,
+      take: options.limit ? (options.before ? -options.limit : options.limit) : undefined,
+      orderBy: [
+        {
+          createdAt: 'desc'
+        },
+        {
+          id: 'asc'
+        }
+      ]
+    })
+    return posts
+  }
+
+
+  // ---
   async delete (postId: string): Promise<void> {
     await this.db.post.delete({
       where: {
@@ -68,7 +100,7 @@ export class PostRepositoryImpl implements PostRepository {
     const post = await this.db.post.findFirst({
       where: filter
     });
-    return post ? this.getDtoWithPreSignedUrl(userId, post) : null;
+    return post ? this.getPostDTO(userId, post) : null;
   }
 
   async getCommentOrPostById(userId: string, postId: string, status?: PostStatus): Promise<PostDTO | null> {
@@ -84,7 +116,7 @@ export class PostRepositoryImpl implements PostRepository {
     const post = await this.db.post.findFirst({
       where: filter
     });
-    return post ? this.getDtoWithPreSignedUrl(userId, post) : null;
+    return post ? this.getPostDTO(userId, post) : null;
   }
 
 
@@ -100,7 +132,7 @@ export class PostRepositoryImpl implements PostRepository {
     return (post != null)
   }
 
-  async getByAuthorId(userId: string, authorId: string, includeComments?: boolean): Promise<PostDTO[]> {
+  async getByAuthorId(userId: string, authorId: string, includeComments?: boolean): Promise<ExtendedPostDTO[]> {
     if(!await this.canViewPosts(userId, authorId)) {
       throw new Error("You can't see this user's posts. It may be that the user is private or that it doesn't exist.")
     }
@@ -286,40 +318,81 @@ export class PostRepositoryImpl implements PostRepository {
     return this.createPresignedUrls(userId, post.id, data.images)
   }
 
-  private async getPostByFilters(options: CursorPagination, filter: Object): Promise<Post[]> {
-    const posts = await this.db.post.findMany({
-      where: filter,
-      cursor: options.after ? { id: options.after } : (options.before) ? { id: options.before } : undefined,
-      skip: options.after ?? options.before ? 1 : undefined,
-      take: options.limit ? (options.before ? -options.limit : options.limit) : undefined,
-      orderBy: [
-        {
-          createdAt: 'desc'
-        },
-        {
-          id: 'asc'
-        }
-      ]
-    })
-    return posts
-  }
-
-  private async getListOfDtoWithPreSignedUrls(userId: string, posts: Post[]): Promise<PostDTO[]> {
-    const postsWithUrls: PostDTO[] = []
+  private async getListOfDtoWithPreSignedUrls(userId: string, posts: Post[]): Promise<ExtendedPostDTO[]> {
+    const postsWithUrls: ExtendedPostDTO[] = []
     for (const post of posts) {
-        postsWithUrls.push(await this.getDtoWithPreSignedUrl(userId, post))
+        postsWithUrls.push(await this.getPostDTO(userId, post))
     }
     return postsWithUrls
   }
 
-  private async getDtoWithPreSignedUrl(userId: string, post: Post): Promise<PostDTO> {
-    if(post.images){
+  private async getPostDTO(userId: string, post: Post): Promise<ExtendedPostDTO> {
+    if(post.images?.length){
       post.images = await this.storageRepository.getPostPreSignedUrls(userId, post.id)
-      return new PostDTO(post)
     }
-    else {
-      return new PostDTO(post)
-    }
+
+    const [qtyComments, qtyLikes, qtyRetweets] = await Promise.all([
+      this.getQtyComments(post.id),
+      this.getQtyOfReactions(post.id, ReactionType.LIKE),
+      this.getQtyOfReactions(post.id, ReactionType.RETWEET)
+    ]);
+
+    const author = await this.getAuthorDTO(post.authorId);
+
+    return new ExtendedPostDTO({
+      ...post,
+      author,
+      qtyComments,
+      qtyLikes,
+      qtyRetweets
+    });
   }
+
+  private async getAuthorDTO(authorId: string): Promise<ExtendedUserDTO> {
+    const author = await this.db.user.findUnique({
+      where: { id: authorId },
+    });
+
+    if (!author) {
+      throw new Error('Author not found');
+    }
+
+    return new ExtendedUserDTO({
+      ...author
+    });
+  }
+
+
+  private async getQtyComments(postId: string): Promise<number> {
+    return this.db.post.count({
+      where: {
+        respondsToId: postId
+      }
+    })
+  }
+
+  private async getQtyOfReactions(postId: string, reaction: ReactionType): Promise<number> {
+    return this.db.reaction.count({
+      where: {
+        postId,
+        type: reaction
+      }
+    })
+  }
+
+  private sortByReactions(posts: ExtendedPostDTO[]): ExtendedPostDTO[] {
+    return posts.sort((a, b) => {
+      const totalReactionsA = (a.qtyLikes ?? 0) + (a.qtyRetweets ?? 0);
+      const totalReactionsB = (b.qtyLikes ?? 0) + (b.qtyRetweets ?? 0);
+
+      if (totalReactionsB !== totalReactionsA)
+        return totalReactionsB - totalReactionsA;
+
+      // If there is a tie, also sort by comments
+      return (b.qtyComments ?? 0) - (a.qtyComments ?? 0);
+    });
+  }
+
+
 
 }

@@ -39,3 +39,4 @@ followerRouter.post('/unfollow/:user_id', async (req: Request, res: Response) =>
       res.status(HttpStatus.BAD_REQUEST).json({ error: errorMessage });
     }
 })
+

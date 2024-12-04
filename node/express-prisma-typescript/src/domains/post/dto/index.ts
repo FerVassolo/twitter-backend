@@ -39,11 +39,12 @@ export class ExtendedPostDTO extends PostDTO {
     this.qtyRetweets = post.qtyRetweets
   }
 
-  author!: ExtendedUserDTO
+  author!: ExtendedUserDTO // TODO: propose changes. I don't like it to return a Extended User DTO since it also returns the hashed password.
   qtyComments!: number
   qtyLikes!: number
   qtyRetweets!: number
 }
+
 export class PendingPostDTO {
   constructor (post: PendingPostDTO) {
     this.id = post.id

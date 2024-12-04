@@ -22,4 +22,11 @@ export class FollowerServiceImpl implements FollowerService{
     return unfollow;
   }
 
+  async getFriends(userId: string): Promise<string[]> {
+    return this.repository.getFriends(userId)
+  }
+
+  async areFriends(userId: string, friendId: string): Promise<boolean> {
+    return this.repository.areFriends(userId, friendId)
+  }
 }

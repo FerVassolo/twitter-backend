@@ -1,4 +1,4 @@
-import {CreatePostInputDTO, PendingPostDTO, PostDTO} from '../dto'
+import {CreatePostInputDTO, ExtendedPostDTO, PendingPostDTO, PostDTO} from '../dto'
 import { PostRepository } from '../repository'
 import { PostService } from '.'
 import { validate } from 'class-validator'
@@ -43,7 +43,7 @@ export class PostServiceImpl implements PostService {
     return await this.repository.getAllByDatePaginated(userId, options)
   }
 
-  async getPostsByAuthor (userId: any, authorId: string): Promise<PostDTO[]> {
+  async getPostsByAuthor (userId: any, authorId: string): Promise<ExtendedPostDTO[]> {
     const posts = await this.repository.getByAuthorId(userId, authorId)
 
     if(!posts) throw new NotFoundException("posts. It may be that the user is private or that it doesn't exist.")
@@ -65,7 +65,7 @@ export class PostServiceImpl implements PostService {
     return await this.repository.getAllCommentsByDatePaginated(userId, postId, options)
   }
 
-  getCommentsByAuthor(userId: any, authorId: string): Promise<PostDTO[]> {
+  getCommentsByAuthor(userId: any, authorId: string): Promise<ExtendedPostDTO[]> {
     throw new Error('Method not implemented.');
   }
 }

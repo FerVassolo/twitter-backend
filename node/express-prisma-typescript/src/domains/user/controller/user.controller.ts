@@ -81,7 +81,7 @@ userRouter.get('/', async (req: Request, res: Response) => {
 userRouter.get('/me', async (req: Request, res: Response) => {
   const { userId } = res.locals.context
 
-  const user = await service.getUser(userId)
+  const user = await service.getUser(userId, userId)
 
   return res.status(HttpStatus.OK).json(user)
 })
@@ -111,10 +111,11 @@ userRouter.get('/me', async (req: Request, res: Response) => {
  *       500:
  *         description: Internal Server Error
  */
-userRouter.get('/:userId', async (req: Request, res: Response) => {
-  const { userId: otherUserId } = req.params
+userRouter.get('/:user_id', async (req: Request, res: Response) => {
+  const { userId } = res.locals.context
+  const { user_id: otherUserId } = req.params
 
-  const user = await service.getUser(otherUserId)
+  const user = await service.getUser(otherUserId, userId)
 
   return res.status(HttpStatus.OK).json(user)
 })
@@ -183,6 +184,11 @@ userRouter.delete('/', async (req: Request, res: Response) => {
   return res.status(HttpStatus.OK)
 })
 
-userRouter.get('/visibility', async (req: Request, res: Response) => {
-  // TODO: get if the user's profile is public or private
+userRouter.get('/by_username/:username', async (req: Request, res: Response) => {
+  const { username } = req.params
+  const {limit, skip} = req.query as Record<string, string>
+
+  const user = await service.getUsersByUsername(username, {limit: Number(limit), skip: Number(skip)})
+
+  return res.status(HttpStatus.OK).json(user)
 })

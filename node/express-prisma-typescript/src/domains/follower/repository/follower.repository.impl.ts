@@ -75,4 +75,58 @@ export class FollowerRepositoryImpl implements FollowerRepository{
       },
     });
   }
+  async isFollower(followedId: string, followerId: string): Promise<boolean> {
+    const follow = await this.db.follow.findFirst({
+      where: {
+        followedId,
+        followerId,
+        deletedAt: null
+      }
+    })
+
+    return !!follow
+  }
+
+  async getFriends(userId: string): Promise<string[]> {
+    // Ids of users followed by the user.
+    const followed = await this.db.follow.findMany({
+      where: {
+        followerId: userId,
+        deletedAt: null,
+      },
+      select: {
+        followedId: true,
+      },
+    });
+
+    // Extract the followed IDs.
+    const followedIds = followed.map(f => f.followedId);
+
+    // Search for friends (users that follow the user).
+    const friends = await this.db.follow.findMany({
+      where: {
+        followerId: {
+          in: followedIds,
+        },
+        followedId: userId,
+        deletedAt: null,
+      },
+      select: {
+        followerId: true,
+      },
+    });
+
+    return friends.map(friend => friend.followerId);
+  }
+
+  async areFriends(userId: string, friendId: string): Promise<boolean> {
+    if(userId === friendId) return true
+    const isUserFollowingFriend = await this.isFollower(friendId, userId);
+    const isFriendFollowingUser = await this.isFollower(userId, friendId);
+
+    return isUserFollowingFriend && isFriendFollowingUser;
+  }
+
+
+
 }
