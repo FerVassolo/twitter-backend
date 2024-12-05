@@ -3,7 +3,8 @@ name: CI
 on:
   push:
     branches:
-      - '*'
+      - ci-cd
+      - main
 
 
 # run the tests
