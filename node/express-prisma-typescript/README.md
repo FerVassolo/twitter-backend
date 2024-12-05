@@ -161,7 +161,7 @@ Fork this repository and complete the tasks. Then create a PR and start with you
     - [x] En realidad ya está hecho. Porque las reactions para acceder a post le piden al PostRepository, y este ya es está ocupando de que no pueda acceder.
   - [x] Eliminar el Storage controller al terminar.
 - [x] Update  `GET api/user/me` and `GET api/user`  to return `UserViewDTO`.
-- [x] Create endpoint `GET api/comment/:post_id` to get comments by post. Add Cursor Based Pagination (You can see how it works [here](./src/types/index.ts)). It should return `ExtendedPostDTO` and **sorted by reactions**.
+- [x] Create endpoint `GET api/comment/:post_id` to get comments by post. Add Cursor Based Pagination (You can see how it works [here](src/main/types/index.ts)). It should return `ExtendedPostDTO` and **sorted by reactions**.
 - [x] Create endpoint `GET api/user/by_username/:username` to return a list of `UserViewDTO`  of those users whose usernames are included in `:username`. Add pagination.
   - Lo que dice es que que busques los usuarios cuyo username contengan el string `:username`.
     - Supongo q sirve para un buscador.
@@ -176,7 +176,7 @@ Fork this repository and complete the tasks. Then create a PR and start with you
 
   - [x] Que solo se puedan enviar mensajes entre amigos. (llamar al método get friends en follower)
     - [x] Un usuario podría enviarle mensaje a otro si no es amigo. En el socket tira una alerta. 
-      - [ ] QUIZÁ debería enviar un evento diciendole al sender "no se pudo enviar, no sigues a este usuario" o algo así.
+      - [x] QUIZÁ debería enviar un evento diciendole al sender "no se pudo enviar, no sigues a este usuario" o algo así.
     - [x] Cuando me pida mandar un mensaje, ver si son amigos. CORTA.
     - [x] Luego el front se ocupa de cargar lo q le pinte.
   - [x] Guardar los mensajes en la db
@@ -196,11 +196,23 @@ Fork this repository and complete the tasks. Then create a PR and start with you
       - [ ] Todo mensaje guardado en la DB arranca marcado como SENT.
   
 - [ ] Search for a testing framework and create some unit tests. Make a CI/CD pipeline using github actions to run those tests.
+  - [x] Follower
+  - [ ] Message
+    - [x] Service
+    - [ ] Socket
+      - That it loads
+      - That it sends (how?)
+  - [x] Post
+  - [x] Reaction
+  - [ ] Storage
+  - [x] User
+  - [ ] CD/CI
 - [ ] Deploy your backend and database to a service of your preference. Here are some recommended options:
     - [Railway](https://railway.app/)
     - [Fl/](https://docs.fl0.com/)
     - [Back4app](https://www.back4app.com/)
     - [AWS](https://aws.amazon.com/) (you need previous AWS knowledge)
+- [ ] Levantar docker
   - SHOULD I INCLUDE THE DEPLOY IN THE CD/CI? Yes
 - [ ] Crear tabla PendingPosts
 - [ ] MODULARIZÁ
@@ -208,6 +220,8 @@ Fork this repository and complete the tasks. Then create a PR and start with you
 - [ ] Cada 1 hora, buscar todos los pending que se hayan creado hace más de 10 minutos y eliminarlos. Yo diría físicamente.
 - [ ] Probar crear un usuario meterle post, follows, mensajes... y que al borrar al usuario que todo eso se borre también.
 - [ ] Practicar presenta con pantalla dividida para poder leer notas y mostrar código a la vez.
+- [ ] Para el follow, le podríamos appendear una columna con status PENDING, ACCEPTED o REJECTED. Aunque no sé si está en los requerimientos (not needed)
+    * Deberías cambiar la parte de repository
 
 
 # Chichiardum leviousa
