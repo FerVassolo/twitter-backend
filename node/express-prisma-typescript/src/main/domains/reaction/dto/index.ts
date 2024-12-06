@@ -1,5 +1,5 @@
-import {IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength} from "class-validator";
-import {ReactionType} from "@prisma/client";
+import { IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator'
+import { ReactionType } from '@prisma/client'
 
 export class CreateReactionInputDTO {
   @IsString()

@@ -147,7 +147,7 @@ Fork this repository and complete the tasks. Then create a PR and start with you
   - [x] Comments
 - [x] Users do not currently have a profile picture. Integrate with AWS S3 to store user profile pictures and post pictures. Careful! Do not receive images in your endpoints. Make use of S3 Pre-signed URLs. Update the UserDTO to include the profile image. You can use a public S3 bucket as it doesn't contain private data.
   - [x] Implementar las 4 funciones del repo de storage
-  - Que tome solo svg, png, jpg, jpeg 
+  - Que tome solo svg, png, jpg, jpeg
     - As far as I'm concerned, that is not possible. The front-end should be responsible of that validation.
   - [x] Cada usuario tiene una carpeta, allí dentro tendrá dos carpetas más, una para los posts y otra para el perfil
   - Límite de 5MB por imagen. No sé cómo hacerlo.
@@ -160,32 +160,33 @@ Fork this repository and complete the tasks. Then create a PR and start with you
   - [x] Actualizá las reactions para que solo sean válidas a posts en pending.
     - [x] En realidad ya está hecho. Porque las reactions para acceder a post le piden al PostRepository, y este ya es está ocupando de que no pueda acceder.
   - [x] Eliminar el Storage controller al terminar.
-- [x] Update  `GET api/user/me` and `GET api/user`  to return `UserViewDTO`.
+- [x] Update `GET api/user/me` and `GET api/user` to return `UserViewDTO`.
 - [x] Create endpoint `GET api/comment/:post_id` to get comments by post. Add Cursor Based Pagination (You can see how it works [here](src/main/types/index.ts)). It should return `ExtendedPostDTO` and **sorted by reactions**.
-- [x] Create endpoint `GET api/user/by_username/:username` to return a list of `UserViewDTO`  of those users whose usernames are included in `:username`. Add pagination.
+- [x] Create endpoint `GET api/user/by_username/:username` to return a list of `UserViewDTO` of those users whose usernames are included in `:username`. Add pagination.
   - Lo que dice es que que busques los usuarios cuyo username contengan el string `:username`.
     - Supongo q sirve para un buscador.
     - Y la paginación es porque el buscador te tira, no sé, los primeros 5 ponele.
 - [x] Update `GET api/post` and `GET api/post/by_user/:user_id` to return a list of `ExtendedPostDTO`.
 - [x] Update `GET api/user/:user_id` to return `UserViewDTO`. Also return if the user follows the one making the request.
 - [ ] Using [SocketIO](https://socket.io/) create an authenticated websocket to create a real-time chat between users only if they follow eachother. Also messages should be stored in the database to keep the chat history.
+
+  - [ ] reescribir usando room.
   - [x] Extraer el UserId del socket auth
   - [x] Yo trato de mandar el msj, si el loco no está en el broadcast se manda el msj pero no se le envía a naides. De todos modos se guarda en la DB.
   - [x] Endpoint para agarrar mensajes por paginación
 
-
   - [x] Que solo se puedan enviar mensajes entre amigos. (llamar al método get friends en follower)
-    - [x] Un usuario podría enviarle mensaje a otro si no es amigo. En el socket tira una alerta. 
+    - [x] Un usuario podría enviarle mensaje a otro si no es amigo. En el socket tira una alerta.
       - [x] QUIZÁ debería enviar un evento diciendole al sender "no se pudo enviar, no sigues a este usuario" o algo así.
     - [x] Cuando me pida mandar un mensaje, ver si son amigos. CORTA.
     - [x] Luego el front se ocupa de cargar lo q le pinte.
   - [x] Guardar los mensajes en la db
-  - [x] Los últimos mensajes también mandalos por paginación cuando los cargas desde la db. 
+  - [x] Los últimos mensajes también mandalos por paginación cuando los cargas desde la db.
     - [x] Cuando el usuario scrollea para arriba para ver más que le pida al back de nuevo con una nueva paginación
   - [x] Obviamente que si Fer está loggeado 20 veces que solo lo muestre una vez.
     - [x] Quizá hacer que un mismo usuario tenga muchas sesiones, ergo, Map<SocketId[], UserId>
   - [ ] Usar Redis para escalamiento horizontal. Por el momento guardo todo en la misma lista.
-  - [ ] Si tenés tiempo: 
+  - [ ] Si tenés tiempo:
     - [ ] Que se puedan borrar mensajes
     - [ ] Que se puedan editar mensajes
     - [ ] Message status: SENT and SEEN. (received es bastante más complejo)
@@ -194,7 +195,7 @@ Fork this repository and complete the tasks. Then create a PR and start with you
         - [ ] Lo de la ventana no es problema nuestro, simplemente que el front mande un evento cuando el usuario abra el chat.
         - [ ] Básicamente lo q tenés q hacer es un listener q cargue en la DB y un evento que avise al sender que su mensaje fue visto y al receiver uno diciendo que vio el mensaje.
       - [ ] Todo mensaje guardado en la DB arranca marcado como SENT.
-  
+
 - [ ] Search for a testing framework and create some unit tests. Make a CI/CD pipeline using github actions to run those tests.
   - [x] Follower
   - [ ] Message
@@ -206,12 +207,13 @@ Fork this repository and complete the tasks. Then create a PR and start with you
   - [x] Reaction
   - [ ] Storage
   - [x] User
-  - [ ] CD/CI
+  - [x] CI (just for tests)
+  - [ ] CD (need to deploy first)
 - [ ] Deploy your backend and database to a service of your preference. Here are some recommended options:
-    - [Railway](https://railway.app/)
-    - [Fl/](https://docs.fl0.com/)
-    - [Back4app](https://www.back4app.com/)
-    - [AWS](https://aws.amazon.com/) (you need previous AWS knowledge)
+  - [Railway](https://railway.app/)
+  - [Fl/](https://docs.fl0.com/)
+  - [Back4app](https://www.back4app.com/)
+  - [AWS](https://aws.amazon.com/) (you need previous AWS knowledge)
 - [ ] Levantar docker
   - SHOULD I INCLUDE THE DEPLOY IN THE CD/CI? Yes
 - [ ] Crear tabla PendingPosts
@@ -221,10 +223,10 @@ Fork this repository and complete the tasks. Then create a PR and start with you
 - [ ] Probar crear un usuario meterle post, follows, mensajes... y que al borrar al usuario que todo eso se borre también.
 - [ ] Practicar presenta con pantalla dividida para poder leer notas y mostrar código a la vez.
 - [ ] Para el follow, le podríamos appendear una columna con status PENDING, ACCEPTED o REJECTED. Aunque no sé si está en los requerimientos (not needed)
-    * Deberías cambiar la parte de repository
-
+  - Deberías cambiar la parte de repository
 
 # Chichiardum leviousa
+
 - [ ] Que se puedan mandar imágenes por shat. Ahora, no sé si meterlo en S3, ¿cómo hace wpp web? ¿y twitter?
   - Si fuera una app es re fácil pq guardás en local storage.
     - Según entiendo, wpp web solo anda si tu cel está conectado, por lo tanto va al local storage de tu celu o algo así.
@@ -235,4 +237,4 @@ Fork this repository and complete the tasks. Then create a PR and start with you
 
 My IPv4 address is 192.168.64.22
 
-So the Swagger would be: http://192.168.64.22:8080/api-docs/ 
+So the Swagger would be: http://192.168.64.22:8080/api-docs/

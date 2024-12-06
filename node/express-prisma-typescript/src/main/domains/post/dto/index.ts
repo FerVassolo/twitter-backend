@@ -1,4 +1,4 @@
-import {ArrayMaxSize, IsArray, IsNotEmpty, IsOptional, IsString, MaxLength} from 'class-validator'
+import { ArrayMaxSize, IsArray, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator'
 import { ExtendedUserDTO } from '@main/domains/user/dto'
 
 export class CreatePostInputDTO {
@@ -11,7 +11,7 @@ export class CreatePostInputDTO {
   @IsArray() // Asegura que es un arreglo
   @ArrayMaxSize(4) // Limita la cantidad máxima de elementos en el arreglo a 4
   @IsString({ each: true }) // Valida que cada elemento del arreglo sea una cadena
-  images?: string[];
+    images?: string[]
 }
 
 export class PostDTO {
@@ -49,8 +49,8 @@ export class PendingPostDTO {
   constructor (post: PendingPostDTO) {
     this.id = post.id
     this.preSignedUrls = post.preSignedUrls
-
   }
+
   id: string
   preSignedUrls: string[]
 }

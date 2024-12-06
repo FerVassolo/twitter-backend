@@ -1,10 +1,10 @@
-import {CreatePostInputDTO, ExtendedPostDTO, PendingPostDTO, PostDTO} from '../dto'
+import { CreatePostInputDTO, ExtendedPostDTO, PendingPostDTO, PostDTO } from '../dto'
 import { PostRepository } from '../repository'
 import { PostService } from '.'
 import { validate } from 'class-validator'
 import { ForbiddenException, NotFoundException } from 'main/utils'
 import { CursorPagination } from 'main/types'
-import {PostStatus} from "@prisma/client";
+import { PostStatus } from '@prisma/client'
 
 export class PostServiceImpl implements PostService {
   constructor (private readonly repository: PostRepository) {}
@@ -33,7 +33,7 @@ export class PostServiceImpl implements PostService {
     const postExists = await this.repository.postExistsById(postId)
 
     // I'm throwing a 404 error because it is what was asked, but I'd rather return a 403 error
-    if(postExists && !post) throw new NotFoundException("post. It may be that the author is private and you don't follow them")
+    if (postExists && !post) throw new NotFoundException("post. It may be that the author is private and you don't follow them")
     if (!post) throw new NotFoundException('post')
 
     return post
@@ -46,17 +46,16 @@ export class PostServiceImpl implements PostService {
   async getPostsByAuthor (userId: any, authorId: string): Promise<ExtendedPostDTO[]> {
     const posts = await this.repository.getByAuthorId(userId, authorId)
 
-    if(!posts) throw new NotFoundException("posts. It may be that the user is private or that it doesn't exist.")
+    if (!posts) throw new NotFoundException("posts. It may be that the user is private or that it doesn't exist.")
 
-    return posts;
+    return posts
   }
 
-  async createComment (userId: string, postId: string, data: CreatePostInputDTO): Promise<PostDTO | PendingPostDTO>  {
-    try{
+  async createComment (userId: string, postId: string, data: CreatePostInputDTO): Promise<PostDTO | PendingPostDTO> {
+    try {
       await validate(data)
       return await this.repository.createComment(userId, postId, data)
-    }
-    catch(e) {
+    } catch (e) {
       throw e
     }
   }
@@ -65,7 +64,7 @@ export class PostServiceImpl implements PostService {
     return await this.repository.getAllCommentsByDatePaginated(userId, postId, options)
   }
 
-  getCommentsByAuthor(userId: any, authorId: string): Promise<ExtendedPostDTO[]> {
-    throw new Error('Method not implemented.');
+  async getCommentsByAuthor (userId: any, authorId: string): Promise<ExtendedPostDTO[]> {
+    throw new Error('Method not implemented.')
   }
 }

@@ -7,7 +7,7 @@ import { db } from 'main/utils'
 import { ReactionRepositoryImpl } from '../repository/reaction.repository.impl'
 import { ReactionServiceImpl } from '../service/reaction.service.impl'
 import { ReactionService } from '../service/reaction.service'
-import {ReactionType} from "@prisma/client";
+import { ReactionType } from '@prisma/client'
 
 export const reactionRouter = Router()
 const service: ReactionService = new ReactionServiceImpl(new ReactionRepositoryImpl(db))

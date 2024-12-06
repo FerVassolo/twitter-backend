@@ -1,5 +1,5 @@
 import { OffsetPagination } from 'main/types'
-import {UserDTO, UserViewDTO} from '../dto'
+import { UserDTO, UserViewDTO } from '../dto'
 
 export interface UserService {
   deleteUser: (userId: any) => Promise<void>

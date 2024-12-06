@@ -150,18 +150,17 @@ userRouter.get('/:user_id', async (req: Request, res: Response) => {
  *         description: Invalid param value, they should be "true" or "false"
  */
 userRouter.post('/make-public/:boolean', async (req: Request, res: Response) => {
-  const { userId } = res.locals.context;
-  const { boolean } = req.params;
-  const isPublic = boolean === 'true';
+  const { userId } = res.locals.context
+  const { boolean } = req.params
+  const isPublic = boolean === 'true'
 
-  if(boolean !== 'true' && boolean !== 'false') {
-    return res.status(HttpStatus.BAD_REQUEST).json({ error: 'Invalid param value, they should be "true" or "false"' });
+  if (boolean !== 'true' && boolean !== 'false') {
+    return res.status(HttpStatus.BAD_REQUEST).json({ error: 'Invalid param value, they should be "true" or "false"' })
   }
 
-  const response = await service.changeVisibility(userId, isPublic);
-  return res.status(HttpStatus.OK).json({ message: response });
-
-});
+  const response = await service.changeVisibility(userId, isPublic)
+  return res.status(HttpStatus.OK).json({ message: response })
+})
 
 /**
  * @swagger
@@ -186,9 +185,9 @@ userRouter.delete('/', async (req: Request, res: Response) => {
 
 userRouter.get('/by_username/:username', async (req: Request, res: Response) => {
   const { username } = req.params
-  const {limit, skip} = req.query as Record<string, string>
+  const { limit, skip } = req.query as Record<string, string>
 
-  const user = await service.getUsersByUsername(username, {limit: Number(limit), skip: Number(skip)})
+  const user = await service.getUsersByUsername(username, { limit: Number(limit), skip: Number(skip) })
 
   return res.status(HttpStatus.OK).json(user)
 })

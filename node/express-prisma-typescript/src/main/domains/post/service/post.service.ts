@@ -1,4 +1,4 @@
-import {CreatePostInputDTO, ExtendedPostDTO, PendingPostDTO, PostDTO} from '../dto'
+import { CreatePostInputDTO, ExtendedPostDTO, PendingPostDTO, PostDTO } from '../dto'
 
 export interface PostService {
   createPost: (userId: string, body: CreatePostInputDTO) => Promise<PostDTO | PendingPostDTO>

@@ -31,17 +31,16 @@ export class UserViewDTO {
   }
 
   id: string
-  name: string  // TODO: propose change so this accepts also null values
+  name: string // TODO: propose change so this accepts also null values
   username: string
   profilePicture: string | null
 }
 
 export class ExtendedUserViewDTO extends UserViewDTO {
-  constructor(user: UserViewDTO, followsYou: boolean) {
-    super(user);
-    this.followsYou = followsYou;
+  constructor (user: UserViewDTO, followsYou: boolean) {
+    super(user)
+    this.followsYou = followsYou
   }
 
-  followsYou!: boolean;
+  followsYou!: boolean
 }
-

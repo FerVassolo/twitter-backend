@@ -1,6 +1,6 @@
 import { CursorPagination } from 'main/types'
-import {CreatePostInputDTO, ExtendedPostDTO, PendingPostDTO, PostDTO} from '../dto'
-import {PostStatus} from "@prisma/client";
+import { CreatePostInputDTO, ExtendedPostDTO, PendingPostDTO, PostDTO } from '../dto'
+import { PostStatus } from '@prisma/client'
 
 export interface PostRepository {
   create: (userId: string, data: CreatePostInputDTO) => Promise<PostDTO | PendingPostDTO>
