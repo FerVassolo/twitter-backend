@@ -7,7 +7,7 @@ In this example you'll find an already setted up express server with some existi
 - Install [Git](https://git-scm.com/), [Docker](https://www.docker.com/), [Node v18](https://nodejs.org/en/download/), [Yarn](https://yarnpkg.com/) and [Direnv](https://direnv.net/)
 - Clone this repository
 - Create a copy of [.envrc template](./.envrc.template) into `.envrc`
-- Verify that you hooked [direnv into your shell](https://direnv.net/docs/hook.html)
+- Verify that you hooked [direnv into your shell](https://direnv.net/docs/hook.html): eval "$(direnv hook bash)"
 - Run:
   ```
   direnv allow
