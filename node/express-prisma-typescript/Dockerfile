@@ -1,6 +1,5 @@
 # Install dependencies, added the platform tag so it can run on my M1 mac
-FROM --platform=linux/amd64 node:20-alpine3.17 AS deps
-# TODO: fijate q no te levanta por la misma razón que en ATFI. fijate como está en atfi y cambialo.
+FROM node:20-alpine3.17 AS deps
 WORKDIR /app
 
 COPY package.json ./
@@ -20,7 +19,7 @@ RUN yarn db:generate
 RUN yarn build
 
 # Production runtime
-FROM --platform=linux/amd64 node:20-alpine3.17 AS runner
+FROM node:20-alpine3.17 AS runner
 
 WORKDIR /app
 
@@ -30,10 +29,11 @@ COPY --from=builder /app/dist ./dist
 
 EXPOSE 8080
 
-CMD yarn prod
+# Ejecutar Prisma migrate antes de iniciar la app
+CMD yarn db:migrate && yarn prod
 
 # Development runtime
-FROM --platform=linux/amd64 node:20-alpine3.17 AS dev
+FROM node:20-alpine3.17 AS dev
 
 WORKDIR /app
 
@@ -43,4 +43,4 @@ COPY nodemon.json ./nodemon.json
 COPY tsconfig.json ./tsconfig.json
 COPY . .
 
-CMD yarn dev
+CMD yarn db:migrate && yarn dev
