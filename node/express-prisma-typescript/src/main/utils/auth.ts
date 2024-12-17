@@ -27,17 +27,17 @@ export const withAuth = (req: Request, res: Response, next: () => any): void => 
 }
 
 export const socketAuth = (socket: Socket, next: (err?: Error) => void) => {
-  const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.split(' ')[1];
+  const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.split(' ')[1]
 
-  if (!token) return next(new UnauthorizedException('MISSING_TOKEN'));
+  if (!token) { next(new UnauthorizedException('MISSING_TOKEN')); return }
 
   jwt.verify(token, Constants.TOKEN_SECRET, (err: any, context: any) => {
-    if (err) return next(new UnauthorizedException('INVALID_TOKEN'));
-    console.log("User id:", context.userId);
-    socket.data.context = context;
-    next();
-  });
-};
+    if (err) { next(new UnauthorizedException('INVALID_TOKEN')); return }
+    console.log('User id:', context.userId)
+    socket.data.context = context
+    next()
+  })
+}
 
 export const encryptPassword = async (password: string): Promise<string> => {
   return await bcrypt.hash(password, 10)

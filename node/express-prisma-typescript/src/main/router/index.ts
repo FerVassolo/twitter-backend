@@ -2,12 +2,12 @@ import { Router } from 'express'
 import { withAuth } from '@main/utils'
 
 import { userRouter } from '@main/domains/user'
-import {healthRouter} from "@main/domains/health";
-import {authRouter} from "@main/domains/auth";
-import {postRouter} from "@main/domains/post";
-import {followerRouter} from "@main/domains/follower";
-import {reactionRouter} from "@main/domains/reaction";
-import {messageRouter} from "@main/domains/message";
+import { healthRouter } from '@main/domains/health'
+import { authRouter } from '@main/domains/auth'
+import { postRouter } from '@main/domains/post'
+import { followerRouter } from '@main/domains/follower'
+import { reactionRouter } from '@main/domains/reaction'
+import { messageRouter } from '@main/domains/message'
 
 export const router = Router()
 
