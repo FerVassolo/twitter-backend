@@ -283,7 +283,8 @@ export class PostRepositoryImpl implements PostRepository {
         id: postId
       },
       data: {
-        status: PostStatus.APPROVED
+        status: PostStatus.APPROVED,
+        createdAt: new Date()
       }
     })
     return new PostDTO(post)

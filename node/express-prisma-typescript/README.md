@@ -133,6 +133,7 @@ Fork this repository and complete the tasks. Then create a PR and start with you
 - [x] Update the `GET api/post/:post_id` and `GET api/post/by_user/:user_id` to throw a 404 error if the author has a private account and the user does not follow them.
 - [ ] The frontend team needs to integrate with the server, but they don't know what endpoints you have available or what they do. Document the API using [Swagger](https://blog.logrocket.com/documenting-express-js-api-swagger/)
   - [ ] Some remain, specially in the follower and auth domains.
+  - [ ] HACER LOS SCHEMAS. Por ejemplo, SignupInputDTO no tiene su esquema hecho.
   - Se me ocurre meterle un openapi.json a cada uno de los controllers. Preguntar si me dejan. El tema de esto es q no correría en http://localhost:8080/api-docs/
     - Si me apurás, me gusta como está ahora.
 - [x] Add the ability to react to a post (like and retweet) both should be stored in the same table and using the endpoints `POST api/reaction/:post_id` and `DELETE api/reaction/:post_id`.
@@ -168,9 +169,7 @@ Fork this repository and complete the tasks. Then create a PR and start with you
     - Y la paginación es porque el buscador te tira, no sé, los primeros 5 ponele.
 - [x] Update `GET api/post` and `GET api/post/by_user/:user_id` to return a list of `ExtendedPostDTO`.
 - [x] Update `GET api/user/:user_id` to return `UserViewDTO`. Also return if the user follows the one making the request.
-- [ ] Using [SocketIO](https://socket.io/) create an authenticated websocket to create a real-time chat between users only if they follow eachother. Also messages should be stored in the database to keep the chat history.
-
-  - [ ] reescribir usando room.
+- [x] Using [SocketIO](https://socket.io/) create an authenticated websocket to create a real-time chat between users only if they follow eachother. Also messages should be stored in the database to keep the chat history.
   - [x] Extraer el UserId del socket auth
   - [x] Yo trato de mandar el msj, si el loco no está en el broadcast se manda el msj pero no se le envía a naides. De todos modos se guarda en la DB.
   - [x] Endpoint para agarrar mensajes por paginación
@@ -214,9 +213,12 @@ Fork this repository and complete the tasks. Then create a PR and start with you
   - [Fl/](https://docs.fl0.com/)
   - [Back4app](https://www.back4app.com/)
   - [AWS](https://aws.amazon.com/) (you need previous AWS knowledge)
-- [ ] Levantar docker
+    - [ ] MATI ME DIJO Q USE RDS. 
+      - Lo que tenés que hacer es, `docker compose up service` (o como se llame) que apunte, en sus variables de entorno, al RDS.
+      - Entonces service está en un ECS (o EC2 si te cuesta) y la db en RDS.
+- [x] Levantar docker
   - SHOULD I INCLUDE THE DEPLOY IN THE CD/CI? Yes
-- [ ] Crear tabla PendingPosts
+- [x] Crear tabla PendingPosts. *Al final no.*
 - [ ] MODULARIZÁ
 - [ ] Ver los TODOs que hayan quedado despedregados por el proyecto.
 - [ ] Cada 1 hora, buscar todos los pending que se hayan creado hace más de 10 minutos y eliminarlos. Yo diría físicamente.

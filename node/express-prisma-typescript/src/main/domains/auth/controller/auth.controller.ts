@@ -14,6 +14,35 @@ export const authRouter = Router()
 // Use dependency injection
 const service: AuthService = new AuthServiceImpl(new UserRepositoryImpl(db))
 
+/**
+ * @swagger
+ * /auth/signup:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Create a new user
+ *     requestBody:
+ *       description: User data
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/SignupInputDTO'
+ *     responses:
+ *       201:
+ *         description: Created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *       409:
+ *         description: Conflict, the user already exists
+ *       500:
+ *         description: Internal server error
+ */
 authRouter.post('/signup', BodyValidation(SignupInputDTO), async (req: Request, res: Response) => {
   const data = req.body
 
@@ -22,6 +51,33 @@ authRouter.post('/signup', BodyValidation(SignupInputDTO), async (req: Request, 
   return res.status(HttpStatus.CREATED).json(token)
 })
 
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Login
+ *     requestBody:
+ *       description: User data
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/LoginInputDTO'
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *       401:
+ *         description: Unauthorized
+ */
 authRouter.post('/login', BodyValidation(LoginInputDTO), async (req: Request, res: Response) => {
   const data = req.body
 

@@ -7,7 +7,7 @@ import { db, BodyValidation } from 'main/utils'
 
 import { PostRepositoryImpl } from '../repository'
 import { PostService, PostServiceImpl } from '../service'
-import { CreatePostInputDTO } from '../dto'
+import { CreatePostInputDTO, PendingPostDTO } from '../dto'
 
 export const postRouter = Router()
 
@@ -157,6 +157,12 @@ postRouter.get('/by_user/:userId', async (req: Request, res: Response) => {
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/PostDTO'
+*        202:
+ *         description: The post was accepted, but it is waiting for the images to be uploaded.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PostDTO'
  *       400:
  *         description: Invalid input data.
  *       401:
@@ -167,10 +173,38 @@ postRouter.post('/', BodyValidation(CreatePostInputDTO), async (req: Request, re
   const data = req.body
 
   const post = await service.createPost(userId, data)
-
+  if (post instanceof PendingPostDTO) {
+    return res.status(HttpStatus.ACCEPTED).json(post)
+  }
   return res.status(HttpStatus.CREATED).json(post)
 })
 
+/**
+ * @swagger
+ * /api/post/finalize/{postId}:
+ *  post:
+ *  summary: Finalizes a post by sending its ID.
+ *  tags: [Post]
+ *  parameters:
+ *    - in: path
+ *      name: postId
+ *      schema:
+ *        type: string
+ *          required: true
+ *  responses:
+ *       201:
+ *         description: Successfully created a new post.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PostDTO'
+ *       400:
+ *         description: Invalid input data.
+ *       401:
+ *         description: Unauthorized.
+ *       500:
+ *         description: Server error. Probably by sending an id that doesn't exist.
+ */
 postRouter.post('/finalize/:postId', async (req: Request, res: Response) => {
   const { userId } = res.locals.context
   const { postId } = req.params
@@ -184,7 +218,7 @@ postRouter.post('/finalize/:postId', async (req: Request, res: Response) => {
  * @swagger
  * /api/post/{postId}:
  *   delete:
- *     summary: Deletes a post by its ID.
+ *     summary: Deletes a post or comment by its ID.
  *     tags: [Post]
  *     parameters:
  *       - in: path
@@ -215,6 +249,36 @@ postRouter.delete('/:postId', async (req: Request, res: Response) => {
   return res.status(HttpStatus.OK).send(`Deleted post ${postId}`)
 })
 
+/**
+ * @swagger
+ * /api/post/comment/{postId}:
+ *   post:
+ *     summary: Creates a new comment to a post
+ *     tags: [Post]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreatePostInputDTO'
+ *     responses:
+ *       201:
+ *         description: Successfully created a new comment.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PostDTO'
+ *        202:
+ *         description: The comment was accepted, but it is waiting for the images to be uploaded.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PostDTO'
+ *       400:
+ *         description: Invalid input data.
+ *       401:
+ *         description: Unauthorized.
+ */
 postRouter.post('/comment/:postId', async (req: Request, res: Response) => {
   const { userId } = res.locals.context
   const data = req.body
@@ -222,9 +286,52 @@ postRouter.post('/comment/:postId', async (req: Request, res: Response) => {
 
   const post = await service.createComment(userId, postId, data)
 
+  if (post instanceof PendingPostDTO) {
+    return res.status(HttpStatus.ACCEPTED).json(post)
+  }
   return res.status(HttpStatus.CREATED).json(post)
 })
 
+/**
+ * @swagger
+ * /api/post/comment/{postId}:
+ *   get:
+ *     summary: Retrieves a list of comments from a post.
+ *     tags: [Post]
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: string
+ *           example: "10"
+ *         description: The maximum number of comments to retrieve.
+ *         required: false
+ *       - in: query
+ *         name: before
+ *         schema:
+ *           type: string
+ *         description: Cursor for reverse pagination.
+ *         required: false
+ *       - in: query
+ *         name: after
+ *         schema:
+ *           type: string
+ *         description: Cursor for forward pagination.
+ *         required: false
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the list of comments.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/PostDTO'
+ *       401:
+ *         description: Unauthorized.
+ *       500:
+ *         description: Server error. Probably by sending an id that doesn't exist.
+ */
 postRouter.get('/comment/:postId', async (req: Request, res: Response) => {
   const { userId } = res.locals.context
   const { limit, before, after } = req.query as Record<string, string>
@@ -234,6 +341,32 @@ postRouter.get('/comment/:postId', async (req: Request, res: Response) => {
   return res.status(HttpStatus.OK).json(comments)
 })
 
+/**
+ * @swagger
+ * /api/post/comment/finalize/{postId}:
+ *  post:
+ *  summary: Finalizes a comment by sending its ID.
+ *  tags: [Post]
+ *  parameters:
+ *    - in: path
+ *      name: postId
+ *      schema:
+ *        type: string
+ *          required: true
+ *  responses:
+ *       201:
+ *         description: Successfully created a new post.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PostDTO'
+ *       400:
+ *         description: Invalid input data.
+ *       401:
+ *         description: Unauthorized.
+ *       500:
+ *         description: Server error. Probably by sending an id that doesn't exist.
+ */
 postRouter.post('/comment/finalize/:postId', async (req: Request, res: Response) => {
   const { userId } = res.locals.context
   const { postId } = req.params
@@ -243,6 +376,33 @@ postRouter.post('/comment/finalize/:postId', async (req: Request, res: Response)
   return res.status(HttpStatus.CREATED).json(post)
 })
 
+/**
+ * @swagger
+ * /api/post/comments/user/{user_id}:
+ *   get:
+ *     summary: Retrieves a list of comments from a specific user.
+ *     tags: [Post]
+ *     parameters:
+ *       - in: path
+ *         name: user_id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the user whose comments to retrieve.
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the list of comments.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/PostDTO'
+ *       401:
+ *         description: Unauthorized.
+ *       500:
+ *         description: Server error. Probably by sending an id that doesn't exist.
+ */
 postRouter.get('/comments/user/:user_id', async (req: Request, res: Response) => {
   const { userId } = res.locals.context
   const { user_id: otherId } = req.params
