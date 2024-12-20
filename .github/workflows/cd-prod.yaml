@@ -20,10 +20,6 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            sudo apt-get update
-            sudo apt-get install -y direnv
-            echo 'eval "$(direnv hook bash)"' >> ~/.bashrc
-            source ~/.bashrc
             direnv allow
             docker pull fersirius/fer-twitter-backend:dev
             sudo docker compose up -d
