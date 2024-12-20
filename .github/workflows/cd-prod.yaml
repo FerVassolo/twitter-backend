@@ -16,7 +16,7 @@ jobs:
       - name: Connect to server and pull Docker image
         uses: appleboy/ssh-action@master
         with:
-          host: ec2-3-83-161-182.compute-1.amazonaws.com
+          host: ${{ secrets.SSH_URL }}
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
@@ -25,3 +25,4 @@ jobs:
             eval "$(direnv hook bash)"
             direnv allow
             sudo docker compose up -d
+
