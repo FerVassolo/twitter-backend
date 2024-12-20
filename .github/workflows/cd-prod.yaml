@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Connect to server, install direnv, and pull Docker image
+      - name: Connect to server and pull Docker image
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_URL }}
@@ -21,6 +21,5 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd twitter
-            direnv allow
             docker pull fersirius/fer-twitter-backend:dev
             sudo docker compose up -d
