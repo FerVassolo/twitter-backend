@@ -22,4 +22,4 @@ jobs:
           script: |
             cd twitter
             docker pull fersirius/fer-twitter-backend:dev
-            sudo docker compose up -d
+            docker compose up -d
