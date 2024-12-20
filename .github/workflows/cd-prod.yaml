@@ -22,4 +22,6 @@ jobs:
           script: |
             docker pull fersirius/fer-twitter-backend:dev
             cd twitter
+            eval "$(direnv hook bash)"
+            direnv allow
             sudo docker compose up -d
