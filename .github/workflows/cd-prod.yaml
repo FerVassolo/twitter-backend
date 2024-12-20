@@ -20,6 +20,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            cd twitter
             direnv allow
             docker pull fersirius/fer-twitter-backend:dev
             sudo docker compose up -d
