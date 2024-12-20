@@ -1,0 +1,23 @@
+name: UPDATE PROD SERVER WITH UPDATED IMAGE
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  connect-and-update-server:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Connect to server and pull Docker image
+        uses: appleboy/ssh-action@v0.1.9
+        with:
+          host: ec2-3-83-161-182.compute-1.amazonaws.com
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            docker pull fersirius/fer-twitter-backend:dev
