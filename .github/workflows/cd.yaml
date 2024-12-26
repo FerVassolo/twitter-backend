@@ -68,4 +68,16 @@ jobs:
         run: |
           echo "❌ ERROR: The Docker Build and Push processes have failed."
 
+      - name: Connect to server and pull Docker image
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_URL }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd twitter
+            sudo direnv allow
+            sudo docker pull fersirius/fer-twitter-backend:dev
+            sudo docker compose down && docker compose up -d --build
+
 
