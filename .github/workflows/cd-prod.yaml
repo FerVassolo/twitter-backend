@@ -23,5 +23,5 @@ jobs:
             cd twitter
             sudo direnv allow
             sudo docker pull fersirius/fer-twitter-backend:dev
-            sudo docker compose down && docker-compose up --build
+            sudo docker compose down && docker compose up --build
 
