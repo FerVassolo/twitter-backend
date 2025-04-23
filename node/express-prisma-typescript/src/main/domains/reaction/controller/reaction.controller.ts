@@ -32,6 +32,7 @@ reactionRouter.delete('/:post_id', async (req: Request, res: Response) => {
   res.status(HttpStatus.NO_CONTENT).json(response)
 })
 
+// All the likes made by a user in his lifetime. This is no longer allowed in twitter. But some months ago you could see the likes of other users.
 reactionRouter.get('/likes/:user_id', async (req: Request, res: Response) => {
   const { userId } = res.locals.context
   const { user_id: otherId } = req.params
@@ -39,6 +40,7 @@ reactionRouter.get('/likes/:user_id', async (req: Request, res: Response) => {
   res.status(HttpStatus.OK).json(reactions)
 })
 
+// All the retweets made by a user in his lifetime.
 reactionRouter.get('/retweets/:user_id', async (req: Request, res: Response) => {
   const { userId } = res.locals.context
   const { user_id: otherId } = req.params

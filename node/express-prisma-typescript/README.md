@@ -145,8 +145,9 @@ Fork this repository and complete the tasks. Then create a PR and start with you
   - [x] Likes
   - [x] Retweets
   - [x] Comments
-- [x] Users do not currently have a profile picture. Integrate with AWS S3 to store user profile pictures and post pictures. Careful! Do not receive images in your endpoints. Make use of S3 Pre-signed URLs. Update the UserDTO to include the profile image. You can use a public S3 bucket as it doesn't contain private data.
+- [ ] Users do not currently have a profile picture. Integrate with AWS S3 to store user profile pictures and post pictures. Careful! Do not receive images in your endpoints. Make use of S3 Pre-signed URLs. Update the UserDTO to include the profile image. You can use a public S3 bucket as it doesn't contain private data.
   - [x] Implementar las 4 funciones del repo de storage
+  - [x] SHOULD `POST user/update/` (el GET ya existe en `user/by_username/:username`)
   - Que tome solo svg, png, jpg, jpeg 
     - As far as I'm concerned, that is not possible. The front-end should be responsible of that validation.
   - [x] Cada usuario tiene una carpeta, allí dentro tendrá dos carpetas más, una para los posts y otra para el perfil
@@ -207,6 +208,7 @@ Fork this repository and complete the tasks. Then create a PR and start with you
   - [x] User
   - [x] CI
   - [ ] *CD*
+- [ ] CI/CD: no corren los tests, o fallan. creo q pq lo corre en twitter-backend y no en node
 - [ ] Deploy your backend and database to a service of your preference. Here are some recommended options:
     - [Railway](https://railway.app/)
     - [Fl/](https://docs.fl0.com/)

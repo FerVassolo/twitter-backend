@@ -192,3 +192,11 @@ userRouter.get('/by_username/:username', async (req: Request, res: Response) => 
 
   return res.status(HttpStatus.OK).json(user)
 })
+
+userRouter.post('/profile-image/', async (req: Request, res: Response) => {
+  const { userId } = res.locals.context
+
+  const url = await service.createProfileImage(userId)
+
+  return res.status(HttpStatus.OK).json({ url })
+})

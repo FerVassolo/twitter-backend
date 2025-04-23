@@ -10,6 +10,7 @@ export interface UserRepository {
   getByEmailOrUsername: (email?: string, username?: string) => Promise<ExtendedUserDTO | null>
   changeVisibility: (userId: string, value: boolean) => Promise<void>
   getByUsername: (username: string, options: OffsetPagination) => Promise<UserViewDTO[]>
+  createProfilePreSignedUrl: (userId: string) => Promise<string>
   userIsPublic: (userId: string) => Promise<boolean>
   canAccessProfile: (userId: string, authorId: string)=> Promise<boolean>
   getExtendedDTO: (userId: string) => Promise<ExtendedUserDTO>

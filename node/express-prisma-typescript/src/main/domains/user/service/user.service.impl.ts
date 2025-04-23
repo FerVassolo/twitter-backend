@@ -31,4 +31,10 @@ export class UserServiceImpl implements UserService {
   async deleteUser (userId: any): Promise<void> {
     await this.repository.delete(userId)
   }
+
+  async createProfileImage(userId: any): Promise<string> {
+    const url = await this.repository.createProfilePreSignedUrl(userId)
+    if (!url) throw new NotFoundException('user')
+    return url
+  }
 }

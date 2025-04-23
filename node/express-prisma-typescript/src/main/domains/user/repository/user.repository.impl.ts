@@ -141,6 +141,16 @@ export class UserRepositoryImpl implements UserRepository {
     );
   }
 
+  async createProfilePreSignedUrl(userId: string): Promise<string> {
+    const user = await this.db.user.findUnique({
+      where: {
+        id: userId
+      }
+    })
+    if (!user) throw new Error('User not found')
+    return this.storageRepository.createProfilePreSignedUrl(userId)
+  }
+
   async userIsPublic(authorId: string): Promise<boolean> {
     const author = await this.db.user.findUnique({
       where: {
