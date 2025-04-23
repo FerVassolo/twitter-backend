@@ -194,7 +194,6 @@ Fork this repository and complete the tasks. Then create a PR and start with you
         - [ ] Lo de la ventana no es problema nuestro, simplemente que el front mande un evento cuando el usuario abra el chat.
         - [ ] Básicamente lo q tenés q hacer es un listener q cargue en la DB y un evento que avise al sender que su mensaje fue visto y al receiver uno diciendo que vio el mensaje.
       - [ ] Todo mensaje guardado en la DB arranca marcado como SENT.
-  
 - [ ] Search for a testing framework and create some unit tests. Make a CI/CD pipeline using github actions to run those tests.
   - [x] Follower
   - [ ] Message
@@ -206,13 +205,14 @@ Fork this repository and complete the tasks. Then create a PR and start with you
   - [x] Reaction
   - [ ] Storage
   - [x] User
-  - [ ] CD/CI
+  - [x] CI
+  - [ ] *CD*
 - [ ] Deploy your backend and database to a service of your preference. Here are some recommended options:
     - [Railway](https://railway.app/)
     - [Fl/](https://docs.fl0.com/)
     - [Back4app](https://www.back4app.com/)
     - [AWS](https://aws.amazon.com/) (you need previous AWS knowledge)
-- [ ] Levantar docker
+- [x] Levantar docker
   - SHOULD I INCLUDE THE DEPLOY IN THE CD/CI? Yes
 - [ ] Crear tabla PendingPosts
 - [ ] MODULARIZÁ
