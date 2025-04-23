@@ -22,7 +22,7 @@ export class HelperFunctions {
 
    async finishMockedPendingPost(id: string, createResult: PendingPostDTO, postDTO: PostDTO): Promise<PostDTO> {
     this.postRepositoryMock.finalize.mockResolvedValue(postDTO);
-    this.postRepositoryMock.getCommentOrPostById.mockResolvedValue(postDTO);
+    this.postRepositoryMock.getById.mockResolvedValue(postDTO);
     return await this.postService.finalizePost("1", createResult.id);
   }
 

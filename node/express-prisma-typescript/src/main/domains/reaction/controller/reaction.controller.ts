@@ -22,7 +22,7 @@ reactionRouter.post('/:post_id', async (req: Request, res: Response) => {
   res.status(HttpStatus.CREATED).json(reaction)
 })
 
-// To delete it is not necesary to be follower and stuff.
+// It is not necessary to be follower in order to delete.
 reactionRouter.delete('/:post_id', async (req: Request, res: Response) => {
   const { userId } = res.locals.context
   const { post_id: postId } = req.params

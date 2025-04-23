@@ -15,8 +15,9 @@ export class PostServiceImpl implements PostService {
   }
 
   async finalizePost (userId: string, postId: string): Promise<PostDTO> {
-    const post = await this.repository.getCommentOrPostById(userId, postId, PostStatus.PENDING)
-    if (!post) throw new NotFoundException('post')
+    const post = await this.repository.getById(userId, postId, PostStatus.PENDING)
+    console.log("post", post)
+    if (!post) throw new NotFoundException('post, or the post is already approved.')
     if (post.authorId !== userId) throw new ForbiddenException()
     return await this.repository.finalize(postId)
   }

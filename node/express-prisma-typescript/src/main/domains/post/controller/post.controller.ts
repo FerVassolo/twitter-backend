@@ -176,7 +176,6 @@ postRouter.post('/finalize/:postId', async (req: Request, res: Response) => {
   const { postId } = req.params
 
   const post = await service.finalizePost(userId, postId)
-
   return res.status(HttpStatus.CREATED).json(post)
 })
 

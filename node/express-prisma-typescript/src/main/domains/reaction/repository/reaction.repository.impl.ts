@@ -3,13 +3,16 @@ import {CreateReactionInputDTO} from '@main/domains/reaction/dto';
 import {ReactionRepository} from './reaction.repository';
 import {PostDTO} from '@main/domains/post/dto';
 import {PostRepository, PostRepositoryImpl} from "@main/domains/post/repository";
+import {UserRepository, UserRepositoryImpl} from "@main/domains/user/repository";
 
 
 export class ReactionRepositoryImpl implements ReactionRepository {
   private readonly postRepository: PostRepository;
+  private readonly userRepository: UserRepository;
   constructor
   (private readonly db: PrismaClient) {
     this.postRepository = new PostRepositoryImpl(db);
+    this.userRepository = new UserRepositoryImpl(db);
   }
 
 
@@ -103,7 +106,7 @@ export class ReactionRepositoryImpl implements ReactionRepository {
   // first, we cannot view the reactions of a user we don't follow and is private
   // second, we cannot view the posts the user reacted to of users we don't follow and are private
   async getReactions(userId: string, otherId: string, reaction: ReactionType): Promise<PostDTO[]> {
-    if(!await this.postRepository.canViewPosts(userId, otherId)) {
+    if(!await this.userRepository.canAccessProfile(userId, otherId)) {
       throw new Error("You can't see this user's posts. It may be that the user is private or that it doesn't exist.")
     }
 
@@ -125,5 +128,6 @@ export class ReactionRepositoryImpl implements ReactionRepository {
     // Filter null values
     return posts.filter((post): post is PostDTO => post !== null);
   }
+
 
 }

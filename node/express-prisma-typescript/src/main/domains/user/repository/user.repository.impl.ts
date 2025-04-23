@@ -75,19 +75,30 @@ export class UserRepositoryImpl implements UserRepository {
     })
   }
 
-  async getRecommendedUsersPaginated (options: OffsetPagination): Promise<UserViewDTO[]> {
+  async getRecommendedUsersPaginated(userId: string, options: OffsetPagination): Promise<UserViewDTO[]> {
+    // The pagination happens on the followerRepository
+    const followedByUsersTheUserFollows: string[] = await this.followerRepository.getFollowedByUsersTheUserFollows(userId, options);
+
+    if (followedByUsersTheUserFollows.length === 0) {
+      return [];
+    }
+
     const users = await this.db.user.findMany({
-      take: options.limit ? options.limit : undefined,
-      skip: options.skip ? options.skip : undefined,
+      where: {
+        id: {
+          in: followedByUsersTheUserFollows,
+        },
+      },
       orderBy: [
         {
-          id: 'asc'
-        }
-      ]
-    })
+          id: 'asc',
+        },
+      ],
+    });
 
     return await this.usersWithProfileImage(users);
   }
+
 
   async getByEmailOrUsername (email?: string, username?: string): Promise<ExtendedUserDTO | null> {
     const user = await this.db.user.findFirst({
@@ -129,4 +140,43 @@ export class UserRepositoryImpl implements UserRepository {
       })
     );
   }
+
+  async userIsPublic(authorId: string): Promise<boolean> {
+    const author = await this.db.user.findUnique({
+      where: {
+        id: authorId
+      },
+      select: {
+        isPublic: true
+      }
+    });
+    return author?.isPublic ?? false;
+  }
+
+  async canAccessProfile(userId: string, authorId: string): Promise<boolean> {
+    if(userId === authorId) return true;
+    const user = await this.db.user.findUnique({
+      where: { id: authorId },
+      select: {
+        isPublic: true,
+        followers: { where: { followerId: userId }, select: { id: true } },
+      },
+    });
+    return !!user && (user.isPublic || user.followers.length > 0);
+  }
+
+  async getExtendedDTO(authorId: string): Promise<ExtendedUserDTO> {
+    const author = await this.db.user.findUnique({
+      where: { id: authorId },
+    });
+
+    if (!author) {
+      throw new Error('Author not found');
+    }
+
+    return new ExtendedUserDTO({
+      ...author
+    });
+  }
+
 }

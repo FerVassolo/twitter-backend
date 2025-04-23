@@ -1,6 +1,5 @@
 # Install dependencies, added the platform tag so it can run on my M1 mac
-FROM --platform=linux/amd64 node:18-alpine AS deps
-
+FROM node:20-alpine3.17 AS deps
 WORKDIR /app
 
 COPY package.json ./
@@ -9,7 +8,7 @@ COPY yarn.lock ./
 RUN yarn install --frozen-lockfile
 
 # Build source code
-FROM node:18-alpine AS builder
+FROM node:20-alpine3.17 AS builder
 
 WORKDIR /app
 
@@ -20,7 +19,7 @@ RUN yarn db:generate
 RUN yarn build
 
 # Production runtime
-FROM node:18-alpine AS runner
+FROM node:20-alpine3.17 AS runner
 
 WORKDIR /app
 
@@ -33,7 +32,7 @@ EXPOSE 8080
 CMD yarn prod
 
 # Development runtime
-FROM node:18-alpine AS dev
+FROM node:20-alpine3.17 AS dev
 
 WORKDIR /app
 
