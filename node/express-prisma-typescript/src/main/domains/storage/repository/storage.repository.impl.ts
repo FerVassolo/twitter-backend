@@ -10,7 +10,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// TODO: should I make a commons folder so this file is not so long?
 export class StorageRepositoryImpl implements StorageRepository {
   private readonly s3Client: S3Client;
   private readonly bucketName: string;

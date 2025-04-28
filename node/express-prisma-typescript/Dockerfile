@@ -1,4 +1,3 @@
-# Install dependencies, added the platform tag so it can run on my M1 mac
 FROM node:20-alpine3.17 AS deps
 WORKDIR /app
 
