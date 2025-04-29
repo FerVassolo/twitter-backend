@@ -8,3 +8,4 @@ export interface FollowerService {
   getFriends: (userId: string) => Promise<string[]> // We consider friends to those users the user follow and the users follow them back
   areFriends: (userId: string, friendId: string) => Promise<boolean>
 }
+
