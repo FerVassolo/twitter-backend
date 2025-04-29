@@ -12,8 +12,5 @@ export interface PostRepository {
   getById: (userId: string, postId: string, status?: PostStatus) => Promise<PostDTO | null>
   getByAuthorId: (userId: string, authorId: string, includeComments?: boolean) => Promise<ExtendedPostDTO[]>
   postExistsById: (postId: string) => Promise<boolean>
-  isFollowed: (userId: string, authorId: string) => Promise<boolean>
-  canViewPosts: (userId: string, authorId: string) => Promise<boolean>
   getPostAuthor: (postId: string) => Promise<string | undefined>
-  getCommentOrPostById: (userId: string, postId: string, status?: PostStatus) => Promise<PostDTO | null>
 }

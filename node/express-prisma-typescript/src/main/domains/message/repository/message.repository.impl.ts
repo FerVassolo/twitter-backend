@@ -15,7 +15,7 @@ export class MessageRepositoryImpl implements MessageRepository{
   }
 
   async deleteMessage(messageId: string, deleterId: string): Promise<void> {
-    // TODO: Delete message from database
+    // TODO: Delete message from database (optional)
   }
 
   async getMessagesPaginated(userId: string, otherId: string, skip?: number, take?: number): Promise<Message[]> {

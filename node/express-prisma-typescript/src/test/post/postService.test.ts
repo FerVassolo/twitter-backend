@@ -21,10 +21,7 @@ describe("Post Service", () => {
       getById: jest.fn(),
       getByAuthorId: jest.fn(),
       postExistsById: jest.fn(),
-      isFollowed: jest.fn(),
-      canViewPosts: jest.fn(),
       getPostAuthor: jest.fn(),
-      getCommentOrPostById: jest.fn(),
     } as jest.Mocked<PostRepository>;
 
     postService = new PostServiceImpl(postRepositoryMock);
@@ -66,6 +63,7 @@ describe("Post Service", () => {
     const userId = "userId";
     const postId = "postId";
     postRepositoryMock.delete.mockResolvedValue(undefined);
+    postRepositoryMock.getById.mockResolvedValue({ id: "postId", authorId: "userId", content: "content", images: [], createdAt: new Date()});
 
     const res = await postService.deletePost(userId, postId);
 

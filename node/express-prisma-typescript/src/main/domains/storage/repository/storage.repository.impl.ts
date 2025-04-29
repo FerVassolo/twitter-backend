@@ -10,7 +10,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// TODO: should I make a commons folder so this file is not so long?
 export class StorageRepositoryImpl implements StorageRepository {
   private readonly s3Client: S3Client;
   private readonly bucketName: string;
@@ -31,15 +30,8 @@ export class StorageRepositoryImpl implements StorageRepository {
 
     const profileImageFolderKey = `${userId}/public/profile-image/`;
     const filename = "image";
-
-    // Check if there's an existing file in the profile-image folder
-    const existingFile: string | null = await this.getExistingFileInFolder(profileImageFolderKey);
-
-    if (existingFile) {
-      console.log(`File already exists: ${existingFile}`);
-      return this.getFileInFolder(existingFile);
-    }
     console.log(`File does not exist: ${filename}`);
+    // The old image is overwritten only when I upload a new image, not when I create the presigned url
     return this.createFileInFolder(profileImageFolderKey, filename);
   }
 

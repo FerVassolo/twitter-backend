@@ -1,5 +1,6 @@
 import { FollowerRepository } from '@main/domains/follower/repository/follower.repository';
 import { Follow, PrismaClient } from '@prisma/client';
+import {OffsetPagination} from "@main/types";
 
 
 export class FollowerRepositoryImpl implements FollowerRepository{
@@ -87,6 +88,18 @@ export class FollowerRepositoryImpl implements FollowerRepository{
     return !!follow
   }
 
+  async isFollowed (userId:string, otherId: string): Promise<boolean> {
+    if(userId === otherId) return true;
+
+    const follow = await this.db.follow.findFirst({
+      where: {
+        followedId: otherId,
+        followerId: userId
+      }
+    })
+    return !!follow;
+  }
+
   async getFriends(userId: string): Promise<string[]> {
     // Ids of users followed by the user.
     const followed = await this.db.follow.findMany({
@@ -127,6 +140,96 @@ export class FollowerRepositoryImpl implements FollowerRepository{
     return isUserFollowingFriend && isFriendFollowingUser;
   }
 
+  async getFollowingUsers(userId: string): Promise<string[]> {
+
+    const followedIds = await this.db.follow.findMany({
+      where: {
+        followerId: userId
+      },
+      select: {
+        followedId: true // Select only the `followedId` field
+      }
+    });
+
+
+    return [userId, ...followedIds.map(follow => follow.followedId)];
+  }
+
+  async getFollowedByUsersTheUserFollows(userId: string, options: OffsetPagination): Promise<string[]> {
+    const following: string[] = await this.getFollowingUsers(userId);
+
+    if (following.length === 0) {
+      return [];
+    }
+    return this.getPaginatedUsers(userId, [], following, options);
+  }
+
+
+  private async getPaginatedUsers(
+    userId: string,
+    followedIds: string[],
+    pendingFollowersIds: string[],
+    options: OffsetPagination
+  ): Promise<string[]> {
+    let followedTotal = new Set(followedIds);
+    let remainingIds = [...pendingFollowersIds];
+    let skip = options.skip || 0;
+    let limit = options.limit || 0;
+
+    while (remainingIds.length > 0 && limit > 0) {
+      const { followedIds: processed, unprocessed } = await this.getRelatedFollowers(
+        userId,
+        remainingIds,
+        { limit, skip }
+      );
+
+      for (const id of processed) {
+        followedTotal.add(id);
+      }
+      remainingIds = unprocessed;
+      skip += limit;
+      limit -= processed.length;
+    }
+
+    return Array.from(followedTotal);
+  }
+  private async getRelatedFollowers(userId: string, following: string[], options: OffsetPagination): Promise<{ followedIds: string[]; unprocessed: string[] }> {
+    const unprocessedFollowerIds: string[] = [];
+
+    const retrievedUsers = await this.relatedFollowers(userId, following, options);
+
+    // We eliminate duplicated users by converting the array to a Set and then back to an array
+    const followedIds: string[] = Array.from(new Set(retrievedUsers.map(f => f.followedId)));
+
+    const processedFollowerIds =  new Set(retrievedUsers.map(f => f.followerId));
+    unprocessedFollowerIds.push( ...following.filter(followerId => !processedFollowerIds.has(followerId)));
+
+    return { followedIds: followedIds, unprocessed: unprocessedFollowerIds };
+  }
+
+  private async relatedFollowers( userId: string, following: string[], options: OffsetPagination): Promise<{ followerId: string; followedId: string }[]> {
+    const followed = await this.db.follow.findMany({
+      where: {
+        followerId: {
+          in: following,
+        },
+        followedId: {
+          not: userId,
+        },
+      },
+      select: {
+        followerId: true,
+        followedId: true,
+      },
+      take: options.limit ? options.limit : undefined,
+      skip: options.skip ? options.skip : undefined,
+    });
+
+    return followed.map(f => ({
+      followerId: f.followerId,
+      followedId: f.followedId,
+    }));
+  }
 
 
 }

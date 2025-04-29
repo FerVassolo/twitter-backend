@@ -47,10 +47,10 @@ describe("User Service", () => {
     ];
     userRepositoryMock.getRecommendedUsersPaginated.mockResolvedValue(users);
 
-    const res = await userService.getUserRecommendations("id", { skip: 0, limit: 2 });
+    const res = await userService.getUserRecommendations("id", { limit: 2, skip: 0 });
 
     expect(res).toEqual(users);
-    expect(userRepositoryMock.getRecommendedUsersPaginated).toHaveBeenCalledWith( { skip: 0, limit: 2 });
+    expect(userRepositoryMock.getRecommendedUsersPaginated).toHaveBeenCalledWith( "id", { limit: 2, skip: 0  });
   })
 
   it("Change Visibility", async () => {
@@ -74,6 +74,7 @@ describe("User Service", () => {
     expect(userRepositoryMock.getByUsername).toHaveBeenCalledWith("Doctor", { skip: 0, limit: 2 });
 
   })
+
 
 
 })

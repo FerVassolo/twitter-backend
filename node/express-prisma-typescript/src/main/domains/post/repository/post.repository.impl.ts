@@ -5,12 +5,19 @@ import {CursorPagination} from 'main/types'
 import {PostRepository} from '.'
 import {CreatePostInputDTO, ExtendedPostDTO, PendingPostDTO, PostDTO} from '../dto'
 import {StorageRepository, StorageRepositoryImpl} from "@main/domains/storage/repository";
-import {ExtendedUserDTO} from "@main/domains/user/dto";
+import {FollowerRepository, FollowerRepositoryImpl} from "@main/domains/follower/repository";
+import {UserRepository, UserRepositoryImpl} from "@main/domains/user/repository";
 
 export class PostRepositoryImpl implements PostRepository {
-  private readonly storageRepository: StorageRepository = new StorageRepositoryImpl();
+  private readonly storageRepository: StorageRepository;
+  private readonly followerRepository: FollowerRepository;
+  private readonly userRepository: UserRepository;
 
-  constructor (private readonly db: PrismaClient) {}
+  constructor (private readonly db: PrismaClient) {
+    this.storageRepository = new StorageRepositoryImpl();
+    this.followerRepository = new FollowerRepositoryImpl(db);
+    this.userRepository = new UserRepositoryImpl(db);
+  }
 
   async create (userId: string, data: CreatePostInputDTO): Promise<PostDTO | PendingPostDTO> {
     return this.addPostToDB(userId, data)
@@ -25,9 +32,8 @@ export class PostRepositoryImpl implements PostRepository {
   }
 
 
-  // --- GET POST AND COMMENT BY DATE PAGINATED
   async getAllByDatePaginated (userId: string, options: CursorPagination): Promise<ExtendedPostDTO[]> {
-    const followingUserIds = await this.getFollowingUsers(userId);
+    const followingUserIds = await this.followerRepository.getFollowingUsers(userId);
     const filter = this.buildPostFilter(followingUserIds);
 
     const posts = await this.getPostByFilters(options, filter)
@@ -37,7 +43,7 @@ export class PostRepositoryImpl implements PostRepository {
   }
 
   async getAllCommentsByDatePaginated (userId: string, postId: string, options: CursorPagination): Promise<ExtendedPostDTO[]> {
-    const followingUserIds = await this.getFollowingUsers(userId);
+    const followingUserIds = await this.followerRepository.getFollowingUsers(userId);
 
     // You cannot see comments from private accounts
     const filter = {
@@ -76,7 +82,6 @@ export class PostRepositoryImpl implements PostRepository {
   }
 
 
-  // ---
   async delete (postId: string): Promise<void> {
     await this.db.post.delete({
       where: {
@@ -86,7 +91,7 @@ export class PostRepositoryImpl implements PostRepository {
   }
 
   async getById(userId: string, postId: string, status?: PostStatus): Promise<PostDTO | null> {
-    const followingUserIds = await this.getFollowingUsers(userId);
+    const followingUserIds = await this.followerRepository.getFollowingUsers(userId);
     const filter = {
       AND: {
         OR: [
@@ -103,23 +108,6 @@ export class PostRepositoryImpl implements PostRepository {
     return post ? this.getPostDTO(userId, post) : null;
   }
 
-  async getCommentOrPostById(userId: string, postId: string, status?: PostStatus): Promise<PostDTO | null> {
-    const followingUserIds = await this.getFollowingUsers(userId);
-    const filter = {
-      AND: {
-        OR: [
-          this.getAnyPostById(followingUserIds, status),
-        ],
-        id: postId
-      }
-    };
-    const post = await this.db.post.findFirst({
-      where: filter
-    });
-    return post ? this.getPostDTO(userId, post) : null;
-  }
-
-
 // --- HELPER FUNCTIONS --- Todo: Should they be moved to another file? Should also chance the interface.
 
   async postExistsById(postId: string): Promise<boolean> {
@@ -133,7 +121,7 @@ export class PostRepositoryImpl implements PostRepository {
   }
 
   async getByAuthorId(userId: string, authorId: string, includeComments?: boolean): Promise<ExtendedPostDTO[]> {
-    if(!await this.canViewPosts(userId, authorId)) {
+    if(!await this.userRepository.canAccessProfile(userId, authorId)) {
       throw new Error("You can't see this user's posts. It may be that the user is private or that it doesn't exist.")
     }
 
@@ -144,30 +132,6 @@ export class PostRepositoryImpl implements PostRepository {
     return this.getListOfDtoWithPreSignedUrls(userId, posts)
   }
 
-
-  async isFollowed (userId:string, authorId: string): Promise<boolean> {
-    if(userId === authorId) return true;
-
-    const follow = await this.db.follow.findFirst({
-      where: {
-        followedId: authorId,
-        followerId: userId
-      }
-    })
-    return !!follow;
-  }
-
-  private async getFollowingUsers(userId: string): Promise<string[]> {
-    const followedIds = await this.db.follow.findMany({
-      where: {
-        followerId: userId
-      },
-      select: {
-        followedId: true // Select only the `followedId` field
-      }
-    });
-    return [userId, ...followedIds.map(follow => follow.followedId)];
-  }
 
   private buildPostFilter(followingUserIds: string[], respondsTo: string | null = null, status?: PostStatus): object {
     return {
@@ -184,15 +148,18 @@ export class PostRepositoryImpl implements PostRepository {
 
   private getAnyPostById(followingUserIds: string[], status?: PostStatus): object {
     return {
-      AND: {
-        OR: [
-          { authorId: { in: followingUserIds } },
-          { author: { isPublic: true } },
-        ],
-        status: status ?? PostStatus.APPROVED
-      }
+      AND: [
+        {
+          OR: [
+            { authorId: { in: followingUserIds } },
+            { author: { isPublic: true } }
+          ]
+        },
+        { status: status ?? PostStatus.APPROVED }
+      ]
     };
   }
+
 
   async getPostAuthor(postId: string): Promise<string | undefined> {
     const post = await this.db.post.findFirst({
@@ -207,36 +174,12 @@ export class PostRepositoryImpl implements PostRepository {
     return post?.authorId;
   }
 
-  private async authorIsPublic(authorId: string): Promise<boolean> {
-    const author = await this.db.user.findUnique({
-      where: {
-        id: authorId
-      },
-      select: {
-        isPublic: true
-      }
-    });
-    return author?.isPublic ?? false;
-  }
-
-  public async canViewPosts(userId: string, authorId: string): Promise<boolean> {
-    if(userId === authorId) return true;
-    const user = await this.db.user.findUnique({
-      where: { id: authorId },
-      select: {
-        isPublic: true,
-        followers: { where: { followerId: userId }, select: { id: true } },
-      },
-    });
-    return !!user && (user.isPublic || user.followers.length > 0);
-  }
-
   async canPostComment(userId: string, postId: string): Promise<boolean | Error> {
     const author = await this.getPostAuthor(postId);
     if (author == undefined) {
       return Error("You can't comment on this post. It may be that the author doesn't exist.")
     }
-    else if (!await this.isFollowed(userId, author) && !await this.authorIsPublic(author)) {
+    else if (!await this.followerRepository.isFollowed(userId, author) && !await this.userRepository.userIsPublic(author)) {
       return Error("You can't comment on this post. " +
         "It may be that the author is private and you don't follow them")
     }
@@ -337,7 +280,7 @@ export class PostRepositoryImpl implements PostRepository {
       this.getQtyOfReactions(post.id, ReactionType.RETWEET)
     ]);
 
-    const author = await this.getAuthorDTO(post.authorId);
+    const author = await this.userRepository.getExtendedDTO(post.authorId);
 
     return new ExtendedPostDTO({
       ...post,
@@ -348,34 +291,10 @@ export class PostRepositoryImpl implements PostRepository {
     });
   }
 
-  private async getAuthorDTO(authorId: string): Promise<ExtendedUserDTO> {
-    const author = await this.db.user.findUnique({
-      where: { id: authorId },
-    });
-
-    if (!author) {
-      throw new Error('Author not found');
-    }
-
-    return new ExtendedUserDTO({
-      ...author
-    });
-  }
-
-
   private async getQtyComments(postId: string): Promise<number> {
     return this.db.post.count({
       where: {
         respondsToId: postId
-      }
-    })
-  }
-
-  private async getQtyOfReactions(postId: string, reaction: ReactionType): Promise<number> {
-    return this.db.reaction.count({
-      where: {
-        postId,
-        type: reaction
       }
     })
   }
@@ -393,6 +312,13 @@ export class PostRepositoryImpl implements PostRepository {
     });
   }
 
-
+  private async getQtyOfReactions(postId: string, reaction: ReactionType): Promise<number> {
+    return this.db.reaction.count({
+      where: {
+        postId,
+        type: reaction
+      }
+    })
+  }
 
 }

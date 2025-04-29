@@ -83,9 +83,6 @@ model Reaction {
   // If the user is deleted, their relations should be deleted as well
   reactioner User @relation(fields: [reactionerId], references: [id], onDelete: Cascade) // One to many
 
-  // TODO: no sé pq no me anda. Pero si el post se borra, se borran todas las reacciones.
-  // post       Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-
   // Shouldn't be able to react to the same post twice
   @@unique([reactionerId, postId, type])
 }

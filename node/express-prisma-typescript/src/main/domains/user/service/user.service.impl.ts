@@ -13,9 +13,10 @@ export class UserServiceImpl implements UserService {
     return user
   }
 
+  // TODO: add a test for this method. The follower repository part is already being tested.
   async getUserRecommendations (userId: any, options: OffsetPagination): Promise<UserViewDTO[]> {
-    // TODO: make this return only users followed by users the original user follows
-    return await this.repository.getRecommendedUsersPaginated(options)
+    // This returns only users followed by users the original user follows
+    return await this.repository.getRecommendedUsersPaginated(userId, options)
   }
 
   async changeVisibility(userId: string, value: boolean): Promise<string> {
@@ -29,5 +30,11 @@ export class UserServiceImpl implements UserService {
 
   async deleteUser (userId: any): Promise<void> {
     await this.repository.delete(userId)
+  }
+
+  async createProfileImage(userId: any): Promise<string> {
+    const url = await this.repository.createProfilePreSignedUrl(userId)
+    if (!url) throw new NotFoundException('user')
+    return url
   }
 }
