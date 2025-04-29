@@ -5,7 +5,6 @@ on:
     branches:
       - '**'
 
-# run the tests
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,8 +18,15 @@ jobs:
         with:
           node-version: '14'
 
+      - name: Change to project directory
+        run: cd node/express-prisma-typescript
+
       - name: Install dependencies
-        run: yarn install
+        run: |
+          cd node/express-prisma-typescript
+          yarn install
 
       - name: Run tests
-        run: yarn test
+        run: |
+          cd node/express-prisma-typescript
+          yarn test
