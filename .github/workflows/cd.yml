@@ -1,0 +1,33 @@
+name: CD PUBLISH AND DEPLOY IMAGE
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u "${{ secrets.GH_USER }}" --password-stdin
+
+      - name: Build and push image
+        run: |
+          cd node/express-prisma-typescript
+          docker buildx build --platform linux/amd64 -t ghcr.io/fervassolo/twitter-image:latest --push .
+
+      - name: Connect and deploy on server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEV_URL }}
+          username: ${{ secrets.DEV_USERNAME }}
+          key: ${{ secrets.SSH_DEV_PRIVATE_KEY }}
+          script: |
+            cd infra
+            sudo docker compose pull
+            sudo docker compose up -d
