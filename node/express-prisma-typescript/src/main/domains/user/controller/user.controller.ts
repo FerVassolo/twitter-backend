@@ -59,10 +59,9 @@ userRouter.get('/', async (req: Request, res: Response) => {
   return res.status(HttpStatus.OK).json(users)
 })
 
-// TODO: DELETE
-userRouter.get('/test', async (req: Request, res: Response) => {
+/*userRouter.get('/test', async (req: Request, res: Response) => {
   return res.status(HttpStatus.OK).json("This endpoint works!")
-})
+})*/
 /**
  * @swagger
  * /api/user/me:
